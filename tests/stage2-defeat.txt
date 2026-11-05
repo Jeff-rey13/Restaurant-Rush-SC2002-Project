@@ -1,0 +1,72 @@
+# Stage 2 - reproducible DEFEAT run ("one customer at a time" manager)
+# The manager only seats a new customer when the dining room is empty, so the
+# second table is never used. Each turn the Waiter serves a READY dish if there
+# is one, else takes an order, else seats (only into an empty room). The Chef
+# always cooks the oldest unfinished order.
+# Result: only C1, the Critic C2 and the VIP C3 pay -> 3 paid, $43.20: DEFEAT
+# (two targets missed), even though nobody leaves.
+# Answers per turn: Waiter task [+ customer/order number], then Chef choice.
+# Turn 1
+1
+1
+0
+# Turn 2
+2
+1
+1
+# Turn 3
+3
+1
+0
+# Turn 4
+0
+0
+# Turn 5
+0
+0
+# Turn 6
+1
+1
+0
+# Turn 7
+2
+1
+1
+# Turn 8
+0
+1
+# Turn 9
+3
+1
+0
+# Turn 10
+0
+0
+# Turn 11
+0
+0
+# Turn 12
+1
+1
+0
+# Turn 13
+2
+1
+1
+# Turn 14
+0
+1
+# Turn 15
+3
+1
+0
+# Turn 16
+0
+0
+# Turn 17
+0
+0
+# Turn 18
+1
+1
+0

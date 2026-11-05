@@ -1,0 +1,76 @@
+# Stage 2 - reproducible VICTORY run
+# Arrivals: C1 Regular (t1), C2 Critic (t4), C3 VIP (t7), C4/C5/C6 Regular (t10/13/16).
+# Key decision: the Critic's Pasta is cooked on the very turn it is ordered and
+# served as soon as it can be, so the Critic is impressed (+10) instead of complaining (-10).
+# Turn 1: seat C1. Chef waits.
+1
+1
+0
+# Turn 2: take C1's order (Salad). Chef cooks it.
+2
+1
+1
+# Turn 3: serve C1. Chef waits.
+3
+1
+0
+# Turn 4: Critic C2 arrives. Seat C2 at Table 2. Chef waits.
+1
+1
+0
+# Turn 5: take the Critic's order (second seated customer) - always Pasta. Chef starts it at once.
+2
+2
+1
+# Turn 6: nothing for the Waiter. Chef finishes the Pasta -> READY.
+0
+1
+# Turn 7: VIP C3 arrives. CONSTRAINED CHOICE: the Waiter can seat the VIP OR serve the Critic.
+# Serving the Critic now (2 turns after ordering) earns +10. The VIP is patient (-5/turn), so it waits.
+3
+1
+0
+# Turn 8: seat VIP C3 at Table 1. Chef waits.
+1
+1
+0
+# Turn 9: take the VIP's order (Pasta, 10% off = $16.20). Chef unit 1.
+2
+1
+1
+# Turn 10: C4 arrives. Seat C4 at Table 2 (freed by the Critic on turn 9). Chef unit 2 -> READY.
+1
+1
+1
+# Turn 11: serve the VIP's Pasta. Chef waits.
+3
+1
+0
+# Turn 12: take C4's order (Salad). Chef cooks it.
+2
+2
+1
+# Turn 13: C5 arrives. Serve C4. Chef waits.
+3
+1
+0
+# Turn 14: seat C5 at Table 1. Chef waits.
+1
+1
+0
+# Turn 15: take C5's order (Burger). Chef cooks it.
+2
+1
+1
+# Turn 16: C6 arrives. Serve C5. Chef waits.
+3
+1
+0
+# Turn 17: seat C6. Chef waits.
+1
+1
+0
+# Turn 18: take C6's order (cannot finish in time - expected). Chef starts it.
+2
+2
+1

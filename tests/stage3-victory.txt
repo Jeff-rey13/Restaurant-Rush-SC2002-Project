@@ -1,0 +1,100 @@
+# Stage 3 - reproducible VICTORY run
+# Each turn asks, in order: Happy Hour (only until it is used), Host, Waiter, Chef.
+# Arrivals: C1 Regular, C2 Critic, C3 VIP, C4 Regular, C5 Regular, C6 Regular.
+# Food (cycle over 5 menu items): C1 Salad, C2 Pasta (Critic), C3 Pasta,
+# C4 Salad + Burger Combo, C5 Salad + Pasta Combo, C6 Salad.
+# Strategy: the Host seats every arrival on the turn it arrives, so the Waiter can
+# take the order in the same turn and the Chef can start cooking immediately.
+# Turn 1: no Happy Hour. Host seats C1. Waiter takes C1's order. Chef cooks it.
+0
+1
+2
+1
+1
+# Turn 2: no HH. Host waits. Waiter serves C1. Chef waits.
+0
+0
+3
+1
+0
+# Turn 3: no HH. Nothing to do.
+0
+0
+0
+0
+# Turn 4: Critic C2 arrives. No HH. Host seats C2. Waiter takes the Critic's order. Chef starts Pasta.
+0
+1
+2
+2
+1
+# Turn 5: no HH. Host waits. Waiter waits. Chef finishes Pasta -> READY.
+0
+0
+0
+1
+# Turn 6: no HH. Host waits. Waiter serves the Critic 2 turns after ordering (+10). Chef waits.
+0
+0
+3
+1
+0
+# Turn 7: VIP C3 arrives. SWITCH HAPPY HOUR ON (lasts turns 7-8). Host seats C3.
+# Waiter takes the VIP's Pasta: $18 x 0.9 (VIP) x 0.8 (Happy Hour) = $12.96. Chef starts it.
+1
+1
+2
+1
+1
+# Turn 8: (Happy Hour last turn; the VIP is waiting for food so recovers 15.) Host waits.
+# Waiter waits. Chef finishes the Pasta.
+0
+0
+1
+# Turn 9: Host waits. Waiter serves the VIP. Chef waits.
+0
+3
+1
+0
+# Turn 10: C4 arrives. Host seats C4. Waiter takes C4's order (Salad + Burger Combo, 2 units). Chef unit 1.
+1
+2
+2
+1
+# Turn 11: Host waits. Waiter waits. Chef unit 2 -> READY.
+0
+0
+1
+# Turn 12: Host waits. Waiter serves C4. Chef waits.
+0
+3
+1
+0
+# Turn 13: C5 arrives. Host seats C5. Waiter takes C5's order (Salad + Pasta Combo, 3 units, $24.30). Chef unit 1.
+1
+2
+1
+1
+# Turn 14: Host waits. Waiter waits. Chef unit 2.
+0
+0
+1
+# Turn 15: Host waits. Waiter waits. Chef unit 3 -> READY.
+0
+0
+1
+# Turn 16: C6 arrives. Host seats C6 (the Host's extra seat frees the Waiter to serve C5). Chef waits.
+1
+3
+1
+0
+# Turn 17: Host waits. Waiter takes C6's order (Salad). Chef cooks it.
+0
+2
+2
+1
+# Turn 18: Host waits. Waiter serves C6 (C6 cannot pay in time - expected). Chef waits.
+0
+3
+1
+0

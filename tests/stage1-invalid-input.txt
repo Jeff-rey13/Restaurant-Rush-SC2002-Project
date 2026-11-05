@@ -1,0 +1,25 @@
+# Stage 1 - input validation and rule checks (first 3 turns only; input then ends)
+# Turn 1: typo, out-of-range number, then try to take an order with nobody seated,
+# try to serve with no orders, then seat C1.
+abc
+7
+2
+3
+1
+1
+# Chef: out of range, then wait
+5
+0
+# Turn 2: try to seat when the queue is empty, then take C1's order.
+1
+2
+1
+# Chef cooks Order #1 -> READY
+1
+# Turn 3: try to take C1's order again (already ordered), then serve.
+2
+1
+3
+1
+# Chef: Order #1 is no longer active, so only "Wait" is offered.
+0
