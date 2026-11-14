@@ -1,0 +1,108 @@
+# Stage 3 - reproducible DEFEAT run (manager ignores the Host, Happy Hour and the second table)
+# Same "one customer at a time" policy as the Stage 2 defeat: the Host always waits,
+# Happy Hour is never switched on, and the Waiter only seats someone when the dining
+# room is empty. The Waiter serves a READY dish if possible, else takes an order,
+# else seats. The Chef always cooks the oldest unfinished order.
+# Result: 3 paid, $43.20 -> DEFEAT. Compare with stage3-victory.txt (5 paid, $85.86):
+# same customers, different manager choices.
+# Answers per turn: Happy Hour (only while unused), Host, Waiter task [+ number], Chef.
+# Turn 1
+0
+0
+1
+1
+0
+# Turn 2
+0
+0
+2
+1
+1
+# Turn 3
+0
+0
+3
+1
+0
+# Turn 4
+0
+0
+0
+0
+# Turn 5
+0
+0
+0
+0
+# Turn 6
+0
+0
+1
+1
+0
+# Turn 7
+0
+0
+2
+1
+1
+# Turn 8
+0
+0
+0
+1
+# Turn 9
+0
+0
+3
+1
+0
+# Turn 10
+0
+0
+0
+0
+# Turn 11
+0
+0
+0
+0
+# Turn 12
+0
+0
+1
+1
+0
+# Turn 13
+0
+0
+2
+1
+1
+# Turn 14
+0
+0
+0
+1
+# Turn 15
+0
+0
+3
+1
+0
+# Turn 16
+0
+0
+0
+0
+# Turn 17
+0
+0
+0
+0
+# Turn 18
+0
+0
+1
+1
+0

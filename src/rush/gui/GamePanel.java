@@ -50,9 +50,9 @@ import rush.domain.Money;
 import rush.domain.Order;
 
 /**
- * The game window's drawing surface (boundary class). It draws the scene, the
- * side panel, the action bar and the overlays on a 1280 x 720 virtual canvas,
- * and turns clicks and key presses into choices passed to TurnFlow.
+ * The game window's drawing area (boundary class). It draws the scene, the
+ * side panel, the action bar and the overlays on a 1280 x 720 canvas, and
+ * turns clicks and key presses into choices for TurnFlow.
  */
 final class GamePanel extends JPanel implements TurnFlow.Listener {
 
@@ -94,7 +94,7 @@ final class GamePanel extends JPanel implements TurnFlow.Listener {
         }
     }
 
-    /** One turn's log: a heading and its lines in the order they happened. */
+    /** The log for one turn: a heading and its lines in order. */
     private static final class LogBlock {
         final String title;
         final List<LogLine> lines = new ArrayList<>();
@@ -137,7 +137,7 @@ final class GamePanel extends JPanel implements TurnFlow.Listener {
         timer.start();
     }
 
-    // --------------------------------------------------------------- control
+    // ----- control -----
 
     void startGame() {
         log.clear();
@@ -148,7 +148,7 @@ final class GamePanel extends JPanel implements TurnFlow.Listener {
         SoundFx.play(SoundFx.Sound.CLICK);
     }
 
-    /** Plays a scripted run (same file format as the command-line test scripts). */
+    /** Plays a test script (same file format as the command-line test scripts). */
     void startReplay(ScriptedPlayer player, String name, double speed) {
         this.replay = player;
         this.replayName = name;
@@ -205,7 +205,7 @@ final class GamePanel extends JPanel implements TurnFlow.Listener {
         flow.nextTurn();
     }
 
-    // ------------------------------------------------------ TurnFlow events
+    // ----- TurnFlow events -----
 
     @Override
     public void onLog(String text, TurnFlow.LogKind kind) {
@@ -231,8 +231,20 @@ final class GamePanel extends JPanel implements TurnFlow.Listener {
     }
 
     @Override
+    public void onHappyHour(ActionResult result) {
+        if (result.isSuccess()) {
+            world.onHappyHour();
+            SoundFx.play(SoundFx.Sound.VICTORY);
+            showToast("Happy Hour is on for this turn and the next: 20% off orders, waiting guests recover 15.", false);
+        } else {
+            SoundFx.play(SoundFx.Sound.ERROR);
+            showToast("Not allowed: " + result.getMessage(), true);
+        }
+    }
+
+    @Override
     public void onTurnEnded() {
-        // the action bar switches to the end-of-turn summary
+        // the action bar now shows the end-of-turn summary
     }
 
     @Override
@@ -253,7 +265,7 @@ final class GamePanel extends JPanel implements TurnFlow.Listener {
         toastTimer = 4.5;
     }
 
-    // ----------------------------------------------------------------- input
+    // ----- input -----
 
     private void installInput() {
         MouseAdapter mouse = new MouseAdapter() {
@@ -316,6 +328,10 @@ final class GamePanel extends JPanel implements TurnFlow.Listener {
             tipsOn = !tipsOn;
             return;
         }
+        if (ch == 'Y' && screen == Screen.PLAYING && replay == null && current().canActivateHappyHour()) {
+            flow.activateHappyHour();
+            return;
+        }
         for (UiButton b : new ArrayList<>(buttons)) {
             if (b.key == null) {
                 continue;
@@ -328,7 +344,7 @@ final class GamePanel extends JPanel implements TurnFlow.Listener {
         }
     }
 
-    // ---------------------------------------------------------------- paint
+    // ----- paint -----
 
     @Override
     protected void paintComponent(Graphics graphics) {
@@ -347,7 +363,7 @@ final class GamePanel extends JPanel implements TurnFlow.Listener {
         g.dispose();
     }
 
-    /** Draws one complete frame onto a 1280 x 720 canvas. */
+    /** Draws one full frame onto a 1280 x 720 canvas. */
     void renderFrame(Graphics2D g) {
         buttons.clear();
         GameController game = current();
@@ -376,7 +392,7 @@ final class GamePanel extends JPanel implements TurnFlow.Listener {
         paintButtons(g);
     }
 
-    // ------------------------------------------------------------ side panel
+    // ----- side panel -----
 
     private void paintSidePanel(Graphics2D g, GameController game) {
         int x = Layout.SIDE_X;
@@ -388,7 +404,7 @@ final class GamePanel extends JPanel implements TurnFlow.Listener {
         int width = Layout.W - left - 16;
 
         // header: turn counter
-        UiKit.card(g, left, 12, width, 78, CARD, LINE);
+        UiKit.card(g, left, 12, width, 112, CARD, LINE);
         GameConfig config = game.getConfig();
         int turn = game.getCurrentTurn();
         g.setFont(UiKit.title(22));
@@ -406,31 +422,34 @@ final class GamePanel extends JPanel implements TurnFlow.Listener {
             g.fill(new RoundRectangle2D.Double(px, 58, pipW - 3, 16, 6, 6));
         }
 
+        paintHappyHourRow(g, game, left + 16, 84, width - 32);
+
         // targets
         GameStats stats = game.getStats();
-        UiKit.card(g, left, 102, width, 186, CARD, LINE);
+        int ty = 34;
+        UiKit.card(g, left, 102 + ty, width, 186, CARD, LINE);
         g.setFont(UiKit.font(Font.BOLD, 13));
         g.setColor(MUTED);
-        g.drawString("TONIGHT'S TARGETS", left + 16, 126);
+        g.drawString("TONIGHT'S TARGETS", left + 16, 126 + ty);
         String avg = stats.hasPaidCustomers() ? String.format("%.1f", stats.getAverageSatisfaction()) : "N/A";
-        paintGoal(g, left + 16, 140, width - 32, 0, "Paid customers",
+        paintGoal(g, left + 16, 140 + ty, width - 32, 0, "Paid customers",
                 stats.getPaidCustomers() + " / " + config.getTargetPaidCustomers(),
                 stats.getPaidCustomers() / (double) config.getTargetPaidCustomers(), 1.0, stats.meetsPaidTarget(config));
-        paintGoal(g, left + 16, 186, width - 32, 1, "Revenue",
+        paintGoal(g, left + 16, 186 + ty, width - 32, 1, "Revenue",
                 Money.format(stats.getRevenueCents()) + " / " + Money.format(config.getTargetRevenueCents()),
                 stats.getRevenueCents() / (double) config.getTargetRevenueCents(), 1.0, stats.meetsRevenueTarget(config));
-        paintGoal(g, left + 16, 232, width - 32, 2, "Avg satisfaction",
+        paintGoal(g, left + 16, 232 + ty, width - 32, 2, "Avg satisfaction",
                 avg + "  (need " + config.getTargetAverageSatisfaction() + ")",
                 stats.getAverageSatisfaction() / 100.0, config.getTargetAverageSatisfaction() / 100.0,
                 stats.meetsSatisfactionTarget(config));
 
         // log
-        UiKit.card(g, left, 300, width, 372, CARD, LINE);
-        paintLog(g, left + 16, 324, width - 32, 664);
+        UiKit.card(g, left, 300 + ty, width, 372 - ty, CARD, LINE);
+        paintLog(g, left + 16, 324 + ty, width - 32, 664);
         g.setFont(UiKit.font(Font.PLAIN, 11));
         g.setColor(MUTED);
         String counts = "Served " + stats.getServedCount() + "  |  Walked out " + stats.getUnhappyDepartures();
-        g.drawString(counts, left + width - 16 - g.getFontMetrics().stringWidth(counts), 324);
+        g.drawString(counts, left + width - 16 - g.getFontMetrics().stringWidth(counts), 324 + ty);
 
         double bx = left;
         bx += pill(g, bx, 684, SoundFx.isEnabled() ? "Sound on" : "Sound off", "S",
@@ -438,6 +457,32 @@ final class GamePanel extends JPanel implements TurnFlow.Listener {
         bx += pill(g, bx, 684, Music.isOn() ? "Music on" : "Music off", "M", Music::toggle) + 6;
         bx += pill(g, bx, 684, tipsOn ? "Tips on" : "Tips off", "T", () -> tipsOn = !tipsOn) + 6;
         pill(g, bx, 684, "Help", "H", () -> showHelp = !showHelp);
+    }
+
+    /** Happy Hour status and its button (start of a turn, once per game). */
+    private void paintHappyHourRow(Graphics2D g, GameController game, double x, double y, double w) {
+        rush.domain.HappyHour hh = game.getHappyHour();
+        g.setColor(new Color(255, 236, 246));
+        g.fill(new RoundRectangle2D.Double(x, y, w, 30, 14, 14));
+        g.setFont(UiKit.font(Font.BOLD, 13));
+        g.setColor(new Color(220, 60, 150));
+        g.drawString("Happy Hour", (float) (x + 12), (float) (y + 20));
+        String status;
+        if (hh.isActive()) {
+            status = hh.getRemainingTurns() == 1 ? "ON - last turn" : "ON - " + hh.getRemainingTurns() + " turns left";
+        } else {
+            status = hh.isAvailable() ? "available once" : "used";
+        }
+        g.setFont(UiKit.font(Font.PLAIN, 12));
+        g.setColor(INK);
+        g.drawString(status, (float) (x + 102), (float) (y + 20));
+        boolean canPress = screen == Screen.PLAYING && replay == null && hh.isAvailable()
+                && flow.phase() != TurnFlow.Phase.TURN_END && flow.phase() != TurnFlow.Phase.GAME_OVER;
+        if (canPress) {
+            boolean suggest = tipsOn && Advisor.suggestHappyHour(flow);
+            buttons.add(new UiButton(x + w - 104, y + 3, 100, 24, "Y", "Start (Y)", null, UiButton.Style.PILL,
+                    suggest, flow::activateHappyHour));
+        }
     }
 
     private void paintGoal(Graphics2D g, int x, int y, int w, int icon, String label, String value,
@@ -537,7 +582,7 @@ final class GamePanel extends JPanel implements TurnFlow.Listener {
         return w;
     }
 
-    // ------------------------------------------------------------ action bar
+    // ----- action bar -----
 
     private void paintActionBar(Graphics2D g, GameController game) {
         int y = Layout.BAR_Y;
@@ -629,13 +674,13 @@ final class GamePanel extends JPanel implements TurnFlow.Listener {
     }
 
     private static String roleName(TurnFlow.Phase phase) {
-        return phase == TurnFlow.Phase.CHEF ? "Chef" : "Waiter";
+        return phase == TurnFlow.Phase.CHEF ? "Chef" : phase == TurnFlow.Phase.HOST ? "Host" : "Waiter";
     }
 
     private void paintPortrait(Graphics2D g, TurnFlow.Phase phase) {
         int y = Layout.BAR_Y;
         UiKit.card(g, 12, y + 12, 136, 138, UiKit.TEAL_LIGHT, TEAL);
-        Actor who = phase == TurnFlow.Phase.CHEF ? world.chef : world.waiter;
+        Actor who = phase == TurnFlow.Phase.CHEF ? world.chef : phase == TurnFlow.Phase.HOST ? world.host : world.waiter;
         CharacterPainter.Pose pose = new CharacterPainter.Pose();
         pose.time = time;
         pose.facing = 1;
@@ -708,6 +753,11 @@ final class GamePanel extends JPanel implements TurnFlow.Listener {
                 continue;
             }
             if (b.style == UiButton.Style.PILL) {
+                if (b.recommended) {
+                    double pulse = 0.5 + 0.5 * Math.sin(time * 5);
+                    g.setColor(UiKit.alpha(UiKit.GOLD, 0.35 + 0.35 * pulse));
+                    g.fill(new RoundRectangle2D.Double(x - 4, y - 4, w + 8, h + 8, h + 8, h + 8));
+                }
                 g.setColor(hover ? new Color(255, 236, 214) : CARD);
                 g.fill(new RoundRectangle2D.Double(x, y, w, h, h, h));
                 g.setColor(LINE);
@@ -782,7 +832,7 @@ final class GamePanel extends JPanel implements TurnFlow.Listener {
         g.setComposite(saved);
     }
 
-    // ------------------------------------------------------------ hover card
+    // ----- hover card -----
 
     private void paintHoverCard(Graphics2D g) {
         if (mouseX < 0 || mouseX > Layout.SCENE_W || mouseY > Layout.SCENE_H) {
@@ -827,7 +877,7 @@ final class GamePanel extends JPanel implements TurnFlow.Listener {
         }
     }
 
-    // --------------------------------------------------------------- screens
+    // ----- screens -----
 
     private void dim(Graphics2D g, int alpha) {
         g.setColor(new Color(40, 24, 30, alpha));
@@ -884,9 +934,9 @@ final class GamePanel extends JPanel implements TurnFlow.Listener {
 
     private void paintHelp(Graphics2D g) {
         dim(g, 140);
-        RoundRectangle2D r = overlayCard(g, 780, 560);
+        RoundRectangle2D r = overlayCard(g, 800, 640);
         double x = r.getX() + 40;
-        double y = r.getY() + 56;
+        double y = r.getY() + 52;
         g.setFont(UiKit.title(32));
         g.setColor(CORAL);
         g.drawString("How to play", (float) x, (float) y);
@@ -901,11 +951,14 @@ final class GamePanel extends JPanel implements TurnFlow.Listener {
             "     A dish that becomes READY this turn can be served next turn at the earliest.",
             "4   A served customer eats for one turn, then the Cashier charges one customer per turn.",
             "5   Everyone not yet served loses satisfaction. At 0 they walk out without paying.",
+            "     The HOST can also seat one guest per turn, before the Waiter acts.",
+            "     HAPPY HOUR (once per game, start of a turn, key Y): 20% off orders for 2 turns,",
+            "     and guests still waiting for a table or food recover 15 satisfaction per turn.",
             "#Need help deciding?",
             "The yellow MANAGER'S TIP suggests a good move and a TIP badge marks it.",
             "Hover over a customer to see their mood, order and cooking progress.",
             "A refused choice explains why and does not use up the task - just pick again.",
-            "Keys: 1-9 choose  |  0 wait  |  Enter next turn  |  T tips  |  S sound  |  M music"
+            "Keys: 1-9 choose  |  0 wait  |  Enter next turn  |  Y Happy Hour  |  T tips  |  S sound  |  M music"
         };
         double ly = y + 30;
         for (String line : lines) {

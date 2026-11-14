@@ -8,9 +8,9 @@ import java.util.function.IntFunction;
 import rush.domain.Customer;
 
 /**
- * Chooses how each character looks. Customer styles (look, greeting and name
- * badge) are registered by the customer's type name, so a new customer type
- * only needs one registration line here and no change to the drawing code.
+ * Picks how each character looks. Customer styles (look, greeting and name
+ * badge) are stored by customer type name, so a new customer type only needs
+ * one line here and no change to the drawing code.
  */
 final class Appearances {
 
@@ -33,7 +33,7 @@ final class Appearances {
         "Ana", "Ben", "Chloe", "Dev", "Elena", "Farid", "Grace", "Hiro", "Ines", "Jun"
     };
 
-    /** How one customer type is presented. */
+    /** How one customer type is shown. */
     static final class CustomerStyle {
         final IntFunction<Look> look;
         final String greeting;
@@ -77,7 +77,7 @@ final class Appearances {
         return NAMES[(customer.getNumber() - 1) % NAMES.length];
     }
 
-    /** Everyday clothes; varied by arrival number so every customer looks different. */
+    /** Everyday clothes. They change with the arrival number so every customer looks different. */
     static Look casual(int n) {
         int i = n - 1;
         return new Look(SKINS[i % SKINS.length], HAIRS[(i * 2 + 1) % HAIRS.length], STYLES[i % STYLES.length],
@@ -106,6 +106,11 @@ final class Appearances {
     static Look chef() {
         return new Look(SKINS[1], HAIRS[2], Look.Hair.SHORT, new Color(250, 250, 248), new Color(70, 70, 80),
                 Look.Accessory.CHEF_HAT, new Color(200, 60, 50));
+    }
+
+    static Look host() {
+        return new Look(SKINS[3], HAIRS[5], Look.Hair.LONG, new Color(36, 120, 130), new Color(40, 40, 50),
+                Look.Accessory.HOST_SASH, new Color(250, 200, 80));
     }
 
     static Look cashier() {

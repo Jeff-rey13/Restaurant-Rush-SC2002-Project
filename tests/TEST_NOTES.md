@@ -14,6 +14,12 @@ run.bat --echo < tests\stage1-victory.txt       # Windows
 ```
 
 `--echo` prints each answer so the output reads like a live session.
+Every script can also be watched in the game window, which reads the answers exactly
+as the console does and ends with the same result screen:
+
+```sh
+java -cp out rush.gui.GuiMain --replay tests/stage3-victory.txt --speed 2
+```
 The saved output of every run is in `tests/transcripts/`.
 The rule tests (`./run-tests.sh`) check individual rules without the UI.
 
@@ -40,3 +46,25 @@ Food: C1 Salad, C2 Pasta (Critic always orders Pasta), C3 Pasta, C4 Salad, C5 Bu
 
 The Critic's "complains" reaction (served more than 2 turns after ordering, −10)
 is checked in the rule tests (`criticReactsToServiceSpeed`).
+
+## Stage 3
+
+Same arrivals as Stage 2. The menu now has five items, so the cycling rule gives:
+C1 Salad, C2 Pasta (Critic), C3 Pasta, **C4 Salad + Burger Combo** ($21.60, 2 units),
+**C5 Salad + Pasta Combo** ($24.30, 3 units), C6 Salad.
+Each turn asks, in order: Happy Hour (only until used), Host, Waiter, Chef.
+
+| Script | Expected result | Key evidence |
+|---|---|---|
+| `stage3-victory.txt` | **VICTORY**: 5 paid, $85.86, avg satisfaction 86.6 | Host seats every arrival on its arrival turn, so the Waiter takes the order the same turn. Happy Hour switched on in turn 7: VIP Pasta billed $18 × 0.9 × 0.8 = **$12.96**; display shows the remaining duration; on turn 8 the waiting VIP recovers 95 → 100. Both combos are cooked unit by unit (2 and 3 units) and paid at full combo price after Happy Hour ended. Critic impressed (+10). |
+| `stage3-defeat.txt` | **DEFEAT**: 3 paid, $43.20, avg 64.7 | Manager never uses the Host, Happy Hour or the second table. Same customers as the victory run; only the choices differ. |
+| `stage3-invalid-input.txt` | stops after turn 7 | Invalid input at the Happy Hour and Host prompts; Host and Waiter both refused when no table is free (task kept); Happy Hour recovery for seated customers (52 → 67, 64 → 79; capped at 100); Regular Salad in Happy Hour billed $7.20. |
+
+## Rule tests (`./run-tests.sh`)
+
+65 checks, all passing at `stage-3`, including the brief's §3.3 example turn by turn,
+money rounding ($24.30 combo, $10.80 VIP Happy Hour burger), invalid choices not using
+up a task, dish READY this turn not servable this turn, abandonment cancelling the
+order and freeing the table, VIP/Critic behaviour, Critic fast/slow reaction, Happy
+Hour once-only / two-turn duration / price lock / recovery cap, Host + Waiter seating
+in the same turn.

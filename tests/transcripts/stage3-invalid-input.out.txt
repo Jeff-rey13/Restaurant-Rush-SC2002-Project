@@ -1,0 +1,355 @@
+------------------------------------------------------------------
+ RESTAURANT RUSH - you are the manager
+------------------------------------------------------------------
+ 18 turns, 2 tables, one Host, one Waiter, one Chef, one Cashier.
+ Each turn: optional Happy Hour (once per game), then Host, Waiter, Chef act in that order.
+ Goal after the last turn: at least 4 paid customers, revenue at least $45.00, average satisfaction of paid customers at least 60.
+ Menu:
+   - Salad ($9.00, 1 unit)
+   - Burger ($15.00, 1 unit)
+   - Pasta ($18.00, 2 units)
+   - Salad + Burger Combo ($21.60, 2 units)
+   - Salad + Pasta Combo ($24.30, 3 units)
+ Customers choose their own food: customer number n orders menu item
+ number ((n - 1) mod 5) + 1 in the list above.
+
+==================== TURN 1 / 18 ====================
+* C1 (Regular) arrives and joins the waiting queue with satisfaction 100. Behaviour: loses 8 satisfaction per waiting turn.
+Revenue: $0.00 | Paid customers: 0 | Avg satisfaction (paid): N/A
+Happy Hour: available (not used yet)
+Waiting queue:
+  C1 [Regular, satisfaction 100] WAITING
+Tables:
+  Table 1: (free)
+  Table 2: (free)
+Staff tasks available:
+  Host   : seat one queued customer (in addition to the Waiter) -> 1 can be seated
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 1 can be seated, 0 order(s) to take, 0 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+HAPPY HOUR (once per game): 20% off orders taken this turn and next;
+customers waiting for a table or food recover 15 satisfaction at the start of each active turn.
+  1) Switch Happy Hour on now
+  0) Not now
+Happy Hour [0-1]: x
+  Invalid input 'x'. Please enter a number from 0 to 1.
+Happy Hour [0-1]: 0
+
+HOST - seat one queued customer (in addition to the Waiter), or wait:
+  1) Seat C1 [Regular, satisfaction 100] WAITING
+  0) Wait
+Host task [0-1]: 4
+  Invalid input '4'. Please enter a number from 0 to 1.
+Host task [0-1]: 1
+  OK: C1 is seated at Table 1.
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 0
+  OK: Waiter waits this turn.
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  0) Wait
+Chef task [0-0]: 0
+  OK: Chef waits this turn.
+------------------------------------------------------------------
+* Waiting penalty: C1 -8 (now 92).
+END OF TURN 1: served 0 | unhappy departures 0 | revenue $0.00 | avg satisfaction (paid) N/A | turns used 1/18
+
+==================== TURN 2 / 18 ====================
+Revenue: $0.00 | Paid customers: 0 | Avg satisfaction (paid): N/A
+Happy Hour: available (not used yet)
+Waiting queue: (empty)
+Tables:
+  Table 1: C1 [Regular, satisfaction 92] SEATED - no order yet
+  Table 2: (free)
+Staff tasks available:
+  Host   : seat one queued customer (in addition to the Waiter) -> 0 can be seated
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 0 can be seated, 1 order(s) to take, 0 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+HAPPY HOUR (once per game): 20% off orders taken this turn and next;
+customers waiting for a table or food recover 15 satisfaction at the start of each active turn.
+  1) Switch Happy Hour on now
+  0) Not now
+Happy Hour [0-1]: 0
+
+HOST - seat one queued customer (in addition to the Waiter), or wait:
+  0) Wait
+Host task [0-0]: 0
+  OK: Host waits this turn.
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 0
+  OK: Waiter waits this turn.
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  0) Wait
+Chef task [0-0]: 0
+  OK: Chef waits this turn.
+------------------------------------------------------------------
+* Waiting penalty: C1 -8 (now 84).
+END OF TURN 2: served 0 | unhappy departures 0 | revenue $0.00 | avg satisfaction (paid) N/A | turns used 2/18
+
+==================== TURN 3 / 18 ====================
+Revenue: $0.00 | Paid customers: 0 | Avg satisfaction (paid): N/A
+Happy Hour: available (not used yet)
+Waiting queue: (empty)
+Tables:
+  Table 1: C1 [Regular, satisfaction 84] SEATED - no order yet
+  Table 2: (free)
+Staff tasks available:
+  Host   : seat one queued customer (in addition to the Waiter) -> 0 can be seated
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 0 can be seated, 1 order(s) to take, 0 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+HAPPY HOUR (once per game): 20% off orders taken this turn and next;
+customers waiting for a table or food recover 15 satisfaction at the start of each active turn.
+  1) Switch Happy Hour on now
+  0) Not now
+Happy Hour [0-1]: 0
+
+HOST - seat one queued customer (in addition to the Waiter), or wait:
+  0) Wait
+Host task [0-0]: 0
+  OK: Host waits this turn.
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 0
+  OK: Waiter waits this turn.
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  0) Wait
+Chef task [0-0]: 0
+  OK: Chef waits this turn.
+------------------------------------------------------------------
+* Waiting penalty: C1 -8 (now 76).
+END OF TURN 3: served 0 | unhappy departures 0 | revenue $0.00 | avg satisfaction (paid) N/A | turns used 3/18
+
+==================== TURN 4 / 18 ====================
+* C2 (Critic) arrives and joins the waiting queue with satisfaction 100. Behaviour: loses 12 satisfaction per waiting turn, always orders Pasta, +10 if served within 2 turns of ordering, otherwise -10.
+Revenue: $0.00 | Paid customers: 0 | Avg satisfaction (paid): N/A
+Happy Hour: available (not used yet)
+Waiting queue:
+  C2 [Critic, satisfaction 100] WAITING
+Tables:
+  Table 1: C1 [Regular, satisfaction 76] SEATED - no order yet
+  Table 2: (free)
+Staff tasks available:
+  Host   : seat one queued customer (in addition to the Waiter) -> 1 can be seated
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 1 can be seated, 1 order(s) to take, 0 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+HAPPY HOUR (once per game): 20% off orders taken this turn and next;
+customers waiting for a table or food recover 15 satisfaction at the start of each active turn.
+  1) Switch Happy Hour on now
+  0) Not now
+Happy Hour [0-1]: 0
+
+HOST - seat one queued customer (in addition to the Waiter), or wait:
+  1) Seat C2 [Critic, satisfaction 100] WAITING
+  0) Wait
+Host task [0-1]: 1
+  OK: C2 is seated at Table 2.
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 0
+  OK: Waiter waits this turn.
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  0) Wait
+Chef task [0-0]: 0
+  OK: Chef waits this turn.
+------------------------------------------------------------------
+* Waiting penalty: C1 -8 (now 68), C2 -12 (now 88).
+END OF TURN 4: served 0 | unhappy departures 0 | revenue $0.00 | avg satisfaction (paid) N/A | turns used 4/18
+
+==================== TURN 5 / 18 ====================
+Revenue: $0.00 | Paid customers: 0 | Avg satisfaction (paid): N/A
+Happy Hour: available (not used yet)
+Waiting queue: (empty)
+Tables:
+  Table 1: C1 [Regular, satisfaction 68] SEATED - no order yet
+  Table 2: C2 [Critic, satisfaction 88] SEATED - no order yet
+Staff tasks available:
+  Host   : seat one queued customer (in addition to the Waiter) -> 0 can be seated
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 0 can be seated, 2 order(s) to take, 0 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+HAPPY HOUR (once per game): 20% off orders taken this turn and next;
+customers waiting for a table or food recover 15 satisfaction at the start of each active turn.
+  1) Switch Happy Hour on now
+  0) Not now
+Happy Hour [0-1]: 0
+
+HOST - seat one queued customer (in addition to the Waiter), or wait:
+  0) Wait
+Host task [0-0]: 0
+  OK: Host waits this turn.
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 0
+  OK: Waiter waits this turn.
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  0) Wait
+Chef task [0-0]: 0
+  OK: Chef waits this turn.
+------------------------------------------------------------------
+* Waiting penalty: C1 -8 (now 60), C2 -12 (now 76).
+END OF TURN 5: served 0 | unhappy departures 0 | revenue $0.00 | avg satisfaction (paid) N/A | turns used 5/18
+
+==================== TURN 6 / 18 ====================
+Revenue: $0.00 | Paid customers: 0 | Avg satisfaction (paid): N/A
+Happy Hour: available (not used yet)
+Waiting queue: (empty)
+Tables:
+  Table 1: C1 [Regular, satisfaction 60] SEATED - no order yet
+  Table 2: C2 [Critic, satisfaction 76] SEATED - no order yet
+Staff tasks available:
+  Host   : seat one queued customer (in addition to the Waiter) -> 0 can be seated
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 0 can be seated, 2 order(s) to take, 0 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+HAPPY HOUR (once per game): 20% off orders taken this turn and next;
+customers waiting for a table or food recover 15 satisfaction at the start of each active turn.
+  1) Switch Happy Hour on now
+  0) Not now
+Happy Hour [0-1]: 0
+
+HOST - seat one queued customer (in addition to the Waiter), or wait:
+  0) Wait
+Host task [0-0]: 0
+  OK: Host waits this turn.
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 0
+  OK: Waiter waits this turn.
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  0) Wait
+Chef task [0-0]: 0
+  OK: Chef waits this turn.
+------------------------------------------------------------------
+* Waiting penalty: C1 -8 (now 52), C2 -12 (now 64).
+END OF TURN 6: served 0 | unhappy departures 0 | revenue $0.00 | avg satisfaction (paid) N/A | turns used 6/18
+
+==================== TURN 7 / 18 ====================
+* C3 (VIP) arrives and joins the waiting queue with satisfaction 100. Behaviour: loses 5 satisfaction per waiting turn, pays 10% less.
+Revenue: $0.00 | Paid customers: 0 | Avg satisfaction (paid): N/A
+Happy Hour: available (not used yet)
+Waiting queue:
+  C3 [VIP, satisfaction 100] WAITING
+Tables:
+  Table 1: C1 [Regular, satisfaction 52] SEATED - no order yet
+  Table 2: C2 [Critic, satisfaction 64] SEATED - no order yet
+Staff tasks available:
+  Host   : seat one queued customer (in addition to the Waiter) -> 0 can be seated
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 0 can be seated, 2 order(s) to take, 0 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+HAPPY HOUR (once per game): 20% off orders taken this turn and next;
+customers waiting for a table or food recover 15 satisfaction at the start of each active turn.
+  1) Switch Happy Hour on now
+  0) Not now
+Happy Hour [0-1]: 1
+  OK: Happy Hour is ON for this turn and the next: orders taken now get 20% off, waiting customers recover 15 satisfaction at the start of each active turn. Happy Hour: C1 recovers 52 -> 67. Happy Hour: C2 recovers 64 -> 79. Happy Hour: C3 is already at the maximum 100.
+
+HOST - seat one queued customer (in addition to the Waiter), or wait:
+  1) Seat C3 [VIP, satisfaction 100] WAITING
+  0) Wait
+Host task [0-1]: 1
+  NOT ALLOWED: No free table: all 2 tables are occupied until a customer pays or leaves. The task was not used up - choose again.
+
+HOST - seat one queued customer (in addition to the Waiter), or wait:
+  1) Seat C3 [VIP, satisfaction 100] WAITING
+  0) Wait
+Host task [0-1]: 0
+  OK: Host waits this turn.
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 1
+  Seat which customer?
+    1) C3 [VIP, satisfaction 100] WAITING
+    0) Back
+  Customer [0-1]: 1
+  NOT ALLOWED: No free table: all 2 tables are occupied until a customer pays or leaves. The task was not used up - choose again.
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 2
+  Take whose order?
+    1) C1 [Regular, satisfaction 67] SEATED - no order yet
+    2) C2 [Critic, satisfaction 79] SEATED - no order yet
+    0) Back
+  Customer [0-2]: 1
+  OK: C1 (Regular) orders Salad: Order #1, bill $7.20, needs 1 preparation unit(s).
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  1) Order #1 for C1: Salad, IN_PREPARATION (0/1 units)
+  0) Wait
+Chef task [0-1]: 1
+  OK: Chef works on Order #1 (Salad): 1/1 units. It is now READY (can be served from next turn).
+------------------------------------------------------------------
+* Waiting penalty: C1 -8 (now 59), C2 -12 (now 67), C3 -5 (now 95).
+END OF TURN 7: served 0 | unhappy departures 0 | revenue $0.00 | avg satisfaction (paid) N/A | turns used 7/18
+
+==================== TURN 8 / 18 ====================
+* Happy Hour: C1 recovers 59 -> 74.
+* Happy Hour: C2 recovers 67 -> 82.
+* Happy Hour: C3 recovers 95 -> 100.
+Revenue: $0.00 | Paid customers: 0 | Avg satisfaction (paid): N/A
+Happy Hour: ACTIVE - last turn (20% off orders taken now)
+Waiting queue:
+  C3 [VIP, satisfaction 100] WAITING
+Tables:
+  Table 1: C1 [Regular, satisfaction 74] ORDERED - Order #1 Salad READY (1/1 units)
+  Table 2: C2 [Critic, satisfaction 82] SEATED - no order yet
+Staff tasks available:
+  Host   : seat one queued customer (in addition to the Waiter) -> 0 can be seated
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 0 can be seated, 1 order(s) to take, 1 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+HOST - seat one queued customer (in addition to the Waiter), or wait:
+  1) Seat C3 [VIP, satisfaction 100] WAITING
+  0) Wait
+Host task [0-1]: 
+Input ended before the game finished (turn 8). Game stopped.

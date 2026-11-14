@@ -1,0 +1,44 @@
+# Stage 3 - rule checks for the Host and Happy Hour (stops after turn 7; input then ends)
+# Turn 1: bad input at the Happy Hour prompt, then "not now". Host: out of range, then seats C1.
+# Waiter and Chef wait.
+x
+0
+4
+1
+0
+0
+# Turns 2-3: nothing.
+0
+0
+0
+0
+0
+0
+0
+0
+# Turn 4: Host seats the Critic C2 at Table 2. Waiter and Chef wait.
+0
+1
+0
+0
+# Turns 5-6: nothing (C1 and C2 keep losing satisfaction while seated).
+0
+0
+0
+0
+0
+0
+0
+0
+# Turn 7: switch Happy Hour on: seated customers C1 and C2 recover 15.
+# Host tries to seat the VIP C3: both tables occupied -> NOT ALLOWED, task kept. Host waits.
+# Waiter also tries to seat C3 -> NOT ALLOWED. Waiter then takes C1's order:
+# Salad $9.00 x 0.8 = $7.20. Chef cooks it.
+1
+1
+0
+1
+1
+2
+1
+1

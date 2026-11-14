@@ -5,6 +5,7 @@ import java.util.List;
 
 import rush.domain.ActionResult;
 import rush.domain.Customer;
+import rush.domain.HappyHour;
 import rush.domain.Menu;
 import rush.domain.Money;
 import rush.domain.Order;
@@ -12,13 +13,15 @@ import rush.domain.PriceCalculator;
 import rush.domain.Restaurant;
 import rush.staff.Cashier;
 import rush.staff.Chef;
+import rush.staff.Host;
 import rush.staff.Staff;
 import rush.staff.Waiter;
 
 /**
- * Runs the turn sequence (Section 3.2). The UI calls beginTurn(), then passes
- * the manager's staff choices, then calls endTurn(). All game rules are
- * applied here or in the domain/staff objects, never in the UI.
+ * Runs each turn (Section 3.2). The UI calls beginTurn(), then sends the
+ * manager's choices (Happy Hour if wanted, then Host, Waiter and Chef, in that
+ * order), then calls endTurn(). All game rules are checked here or in the
+ * domain and staff classes, never in the UI.
  */
 public class GameController {
 
@@ -27,10 +30,12 @@ public class GameController {
     private final Restaurant restaurant;
     private final PriceCalculator pricing;
     private final GameStats stats = new GameStats();
+    private final HappyHour happyHour = new HappyHour();
 
     private final Waiter waiter = new Waiter();
     private final Chef chef = new Chef();
     private final Cashier cashier = new Cashier();
+    private final Host host = new Host();
 
     private int currentTurn;
 
@@ -39,20 +44,21 @@ public class GameController {
         this.schedule = schedule;
         this.restaurant = new Restaurant(menu, config.getTableCount());
         this.pricing = new PriceCalculator();
+        this.pricing.addPolicy(happyHour);
     }
 
-    /** Creates a game with the required base setting. */
+    /** Creates a game with the base settings. */
     public static GameController createBaseGame() {
         return new GameController(GameConfig.base(), ArrivalSchedule.base(), Menu.createDefault());
     }
 
-    // ---------------------------------------------------------------- turn flow
+    // ----- turn flow -----
 
     public boolean hasNextTurn() {
         return currentTurn < config.getTotalTurns();
     }
 
-    /** Step 1: new turn, staff reset, scheduled arrival joins the queue. */
+    /** Step 1: start a new turn, reset the staff and add any new arrival to the queue. */
     public List<String> beginTurn() {
         if (!hasNextTurn()) {
             throw new IllegalStateException("The game is over");
@@ -69,10 +75,51 @@ public class GameController {
                     + ") arrives and joins the waiting queue with satisfaction "
                     + arrival.getSatisfaction() + ". Behaviour: " + arrival.describeBehaviour() + ".");
         }
+        // Happy Hour is still on from last turn, so waiting customers recover now.
+        events.addAll(happyHour.applyRecovery(restaurant));
         return events;
     }
 
-    // ------------------------------------------------- step 2/3: manager choices
+    // ----- Happy Hour -----
+
+    public boolean canActivateHappyHour() {
+        return happyHour.isAvailable();
+    }
+
+    /** Can only be turned on at the start of a turn, before any staff member acts. */
+    public ActionResult activateHappyHour() {
+        if (!host.isAvailable() || !waiter.isAvailable() || !chef.isAvailable()) {
+            return ActionResult.fail("Happy Hour can only be switched on at the start of a turn, before staff act.");
+        }
+        ActionResult result = happyHour.activate();
+        if (!result.isSuccess()) {
+            return result;
+        }
+        // This is the first Happy Hour turn, so the recovery happens now.
+        List<String> recovery = happyHour.applyRecovery(restaurant);
+        return recovery.isEmpty() ? result
+                : ActionResult.ok(result.getMessage() + " " + String.join(" ", recovery));
+    }
+
+    public HappyHour getHappyHour() {
+        return happyHour;
+    }
+
+    // ----- Host -----
+
+    public ActionResult hostSeat(Customer customer) {
+        return host.seat(customer, restaurant);
+    }
+
+    public ActionResult hostWait() {
+        return host.waitThisTurn();
+    }
+
+    public boolean isHostAvailable() {
+        return host.isAvailable();
+    }
+
+    // ----- step 2/3: manager choices -----
 
     public ActionResult waiterSeat(Customer customer) {
         return waiter.seat(customer, restaurant);
@@ -102,7 +149,7 @@ public class GameController {
         return chef.waitThisTurn();
     }
 
-    /** Steps 4 and 5: eating, payment, waiting penalty and abandonment. */
+    /** Steps 4 and 5: eating, paying, losing satisfaction and leaving. */
     public List<String> endTurn() {
         List<String> events = new ArrayList<>();
 
@@ -122,7 +169,7 @@ public class GameController {
                     + ": PAID, satisfaction " + payer.getPaidSatisfaction() + " recorded, table freed.");
         }
 
-        // Step 5: everyone not yet served loses satisfaction; at 0 they leave.
+        // Step 5: everyone not served yet loses satisfaction. At 0 they leave.
         List<String> penalties = new ArrayList<>();
         for (Customer customer : restaurant.getCustomersWaitingForService()) {
             boolean leaves = customer.loseSatisfactionForWaiting();
@@ -138,10 +185,16 @@ public class GameController {
         if (!penalties.isEmpty()) {
             events.add("Waiting penalty: " + String.join(", ", penalties) + ".");
         }
+
+        boolean wasActive = happyHour.isActive();
+        happyHour.endTurn();
+        if (wasActive && !happyHour.isActive()) {
+            events.add("Happy Hour has ended.");
+        }
         return events;
     }
 
-    // ---------------------------------------------------------------- queries
+    // ----- queries -----
 
     public int getCurrentTurn() {
         return currentTurn;
@@ -161,6 +214,7 @@ public class GameController {
 
     public List<Staff> getStaff() {
         List<Staff> staff = new ArrayList<>();
+        staff.add(host);
         staff.add(waiter);
         staff.add(chef);
         staff.add(cashier);
@@ -175,7 +229,7 @@ public class GameController {
         return chef.isAvailable();
     }
 
-    /** Summary of what each role could usefully do right now (start-of-turn display). */
+    /** What each role can do right now (shown at the start of the turn). */
     public List<String> describeAvailableTasks() {
         List<String> lines = new ArrayList<>();
         int seatable = restaurant.hasFreeTable() ? restaurant.getWaitingQueue().size() : 0;
@@ -194,6 +248,7 @@ public class GameController {
                 toCook++;
             }
         }
+        lines.add("Host   : " + host.describeDuties() + " -> " + seatable + " can be seated");
         lines.add("Waiter : " + waiter.describeDuties() + " -> " + seatable + " can be seated, "
                 + toOrder + " order(s) to take, " + toServe + " dish(es) to serve");
         lines.add("Chef   : " + chef.describeDuties() + " -> " + toCook + " order(s) to cook");

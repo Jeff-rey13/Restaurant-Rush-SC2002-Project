@@ -9,9 +9,12 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.QuadCurve2D;
 import java.awt.geom.RoundRectangle2D;
 
+import java.util.List;
+
+import rush.domain.ComboMeal;
 import rush.domain.MenuItem;
 
-/** Draws food. (cx, cy) is the centre of the plate; scale 1 is about 40 px wide. */
+/** Draws food. (cx, cy) is the centre of the plate; at scale 1 it is about 40 px wide. */
 final class DishPainter {
 
     private DishPainter() {
@@ -21,11 +24,25 @@ final class DishPainter {
         AffineTransform saved = g.getTransform();
         g.translate(cx, cy);
         g.scale(scale, scale);
-        paintDish(g, item.getName());
+        if (item instanceof ComboMeal) {
+            // a combo is drawn as its two dishes on one tray (display only)
+            List<MenuItem> parts = ((ComboMeal) item).getComponents();
+            g.setColor(new Color(200, 140, 80));
+            g.fill(new RoundRectangle2D.Double(-30, -6, 60, 14, 8, 8));
+            for (int i = 0; i < parts.size(); i++) {
+                AffineTransform inner = g.getTransform();
+                g.translate(-14 + i * 28, 0);
+                g.scale(0.72, 0.72);
+                paintDish(g, parts.get(i).getName());
+                g.setTransform(inner);
+            }
+        } else {
+            paintDish(g, item.getName());
+        }
         g.setTransform(saved);
     }
 
-    /** Draws one dish by name at the origin; unknown dishes get a covered plate. */
+    /** Draws one dish by name at the origin. Unknown dishes get a covered plate. */
     static void paintDish(Graphics2D g, String name) {
         String n = name.toLowerCase();
         if (n.equals("salad")) {

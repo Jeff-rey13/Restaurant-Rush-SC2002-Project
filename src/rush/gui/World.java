@@ -20,6 +20,7 @@ import rush.control.GameController;
 import rush.domain.ActionResult;
 import rush.domain.Customer;
 import rush.domain.CustomerStatus;
+import rush.domain.HappyHour;
 import rush.domain.MenuItem;
 import rush.domain.Money;
 import rush.domain.Order;
@@ -29,8 +30,8 @@ import rush.domain.Table;
 
 /**
  * Everything that moves on screen. Each frame it compares the game state with
- * what it showed last time and animates the difference, so the game logic
- * never needs to know it is being drawn.
+ * what it showed last time and animates the changes, so the game logic never
+ * needs to know it is being drawn.
  */
 final class World {
 
@@ -65,10 +66,12 @@ final class World {
     final Actor waiter = new Actor(Appearances.waiter(), Layout.WAITER_HOME);
     final Actor chef = new Actor(Appearances.chef(), Layout.CHEF_SPOT);
     final Actor cashier = new Actor(Appearances.cashier(), Layout.CASHIER_SPOT);
+    final Actor host = new Actor(Appearances.host(), Layout.HOST_SPOT);
+    private double happyHourFlash;
 
     static final Point2D.Double POT = SceneRenderer.up(Layout.iso(Layout.KITCHEN_GX + 0.5, 0.48), 38);
     static final Point2D.Double PAN = SceneRenderer.up(Layout.iso(Layout.KITCHEN_GX + 1.5, 0.48), 38);
-    private static final double[][] PLANTS = {{0.55, 5.2}, {6.4, 0.45}, {11.4, 9.4}, {0.55, 9.4}};
+    private static final double[][] PLANTS = {{0.55, 5.75}, {6.4, 0.45}, {11.4, 9.4}, {0.55, 9.4}};
     private final SceneCache roomCache = new SceneCache();
     private final SceneCache lightCache = new SceneCache();
     private Order carriedOrder;
@@ -92,9 +95,9 @@ final class World {
         waiter.pose.carrying = null;
     }
 
-    // ------------------------------------------------------------------ sync
+    // ----- sync -----
 
-    /** Compares the game state with the screen and starts animations for whatever changed. */
+    /** Compares the game state with the screen and animates whatever changed. */
     void sync(GameController game) {
         if (game == null) {
             return;
@@ -216,17 +219,27 @@ final class World {
         a.walkTo(Layout.DOOR_OUTSIDE, () -> a.fadingOut = true, 0);
     }
 
-    // ------------------------------------------------------- staff actions
+    // ----- staff actions -----
 
-    /** Animates a staff member carrying out (or failing) the manager's choice. */
+    /** Animates a staff member doing (or failing) the manager's choice. */
     void onStaffAction(TurnFlow.Option option, ActionResult result) {
-        Actor staff = option.role == TurnFlow.Role.CHEF ? chef : waiter;
+        Actor staff = option.role == TurnFlow.Role.CHEF ? chef : option.role == TurnFlow.Role.HOST ? host : waiter;
         if (!result.isSuccess()) {
             staff.say("Can't do that!", null, BAD, 1.6);
             SoundFx.play(SoundFx.Sound.ERROR);
             return;
         }
         CustomerActor target = option.customer == null ? null : customers.get(option.customer);
+        if (option.role == TurnFlow.Role.HOST && option.kind == TurnFlow.Kind.SEAT) {
+            host.clearPath();
+            if (target != null) {
+                host.walkTo(new Point2D.Double(target.x + 36, target.y));
+            }
+            host.walkTo(Layout.tableSide(option.customer.getTable().getNumber()));
+            host.walkTo(Layout.HOST_SPOT);
+            host.say("Welcome! This way, please.", null, Color.WHITE, 1.8);
+            return;
+        }
         switch (option.kind) {
             case SEAT:
                 resetWaiter();
@@ -288,7 +301,7 @@ final class World {
         }
     }
 
-    // ---------------------------------------------------------------- update
+    // ----- update -----
 
     void update(double dt) {
         time += dt;
@@ -298,6 +311,11 @@ final class World {
         waiter.update(dt, time);
         chef.update(dt, time);
         cashier.update(dt, time);
+        host.update(dt, time);
+        if (host.isIdle()) {
+            host.pose.facing = 1;
+        }
+        happyHourFlash = Math.max(0, happyHourFlash - dt);
         if (chef.pose.working && Math.random() < dt * 8) {
             effects.flames(PAN.x + 10, PAN.y - 6);
         }
@@ -319,7 +337,7 @@ final class World {
         }
     }
 
-    // ---------------------------------------------------------------- paint
+    // ----- paint -----
 
     void paint(Graphics2D g, GameController game, double evening) {
         List<MenuItem> menu = game.getRestaurant().getMenu().getItems();
@@ -359,6 +377,9 @@ final class World {
             add(keys, drawables, a.y, gg -> paintCustomer(gg, a));
         }
         add(keys, drawables, waiter.y, gg -> paintActor(gg, waiter, -1, false));
+        add(keys, drawables, host.y, gg -> paintActor(gg, host, -1, false));
+        Point2D.Double podium = Layout.iso(Layout.PODIUM[0], Layout.PODIUM[1]);
+        add(keys, drawables, podium.y, SceneRenderer::paintPodium);
         List<Integer> order = new ArrayList<>();
         for (int i = 0; i < drawables.size(); i++) {
             order.add(i);
@@ -369,7 +390,13 @@ final class World {
         }
         lightCache.draw(g, evening, deviceScale, 0, cg -> SceneRenderer.paintLighting(cg, evening));
         SceneRenderer.paintCandleGlow(g, evening, time);
+        HappyHour hh = game.getHappyHour();
+        if (hh.isActive()) {
+            g.setColor(new Color(255, 80, 160, 26));
+            g.fillRect(0, 0, Layout.SCENE_W, Layout.SCENE_H);
+        }
         effects.paintParticles(g);
+        paintNeonSign(g, hh);
         paintTicketRail(g, game.getRestaurant());
         for (CustomerActor a : customers.values()) {
             if (!a.leaving) {
@@ -392,6 +419,7 @@ final class World {
         all.add(waiter);
         all.add(chef);
         all.add(cashier);
+        all.add(host);
         return all;
     }
 
@@ -439,7 +467,49 @@ final class World {
         }
     }
 
-    /** Order tickets clipped to a rail above the kitchen, with cooking progress. */
+    /** Called when Happy Hour is turned on: lights the sign and shows a celebration. */
+    void onHappyHour() {
+        happyHourFlash = 1.5;
+        effects.confetti(Layout.SCENE_W);
+        host.say("Happy Hour! 20% off!", null, new Color(255, 200, 230), 2.4);
+    }
+
+    /** A neon sign that lights up while Happy Hour is on. */
+    private void paintNeonSign(Graphics2D g, HappyHour hh) {
+        double x = 470;
+        double y = 12;
+        double w = 200;
+        double h = 46;
+        g.setColor(new Color(30, 20, 40, 220));
+        g.fill(new RoundRectangle2D.Double(x, y, w, h, 14, 14));
+        g.setColor(new Color(90, 70, 110));
+        g.setStroke(new BasicStroke(2f));
+        g.draw(new RoundRectangle2D.Double(x, y, w, h, 14, 14));
+        boolean on = hh.isActive();
+        double flicker = on ? 0.85 + 0.15 * Math.sin(time * 23) * Math.sin(time * 7) : 0;
+        Color neon = on ? new Color(255, 90, 190) : new Color(110, 80, 110);
+        if (on) {
+            SceneRenderer.glow(g, x + w / 2, y + h / 2, 130, new Color(255, 80, 180), (int) (110 * flicker));
+        }
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20));
+        if (on) {
+            g.setColor(new Color(255, 200, 240, (int) (255 * flicker)));
+            SceneRenderer.drawCentered(g, "HAPPY HOUR", x + w / 2 + 0.5, y + 27.5);
+        }
+        g.setColor(on ? new Color(neon.getRed(), neon.getGreen(), neon.getBlue(), (int) (255 * flicker)) : neon);
+        SceneRenderer.drawCentered(g, "HAPPY HOUR", x + w / 2, y + 27);
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 10));
+        g.setColor(on ? new Color(120, 230, 255) : new Color(120, 100, 120));
+        String sub = on ? (hh.getRemainingTurns() == 1 ? "LAST TURN  -  20% OFF" : hh.getRemainingTurns() + " TURNS LEFT  -  20% OFF")
+                : hh.isAvailable() ? "ONCE PER GAME" : "USED";
+        SceneRenderer.drawCentered(g, sub, x + w / 2, y + 41);
+        if (happyHourFlash > 0) {
+            g.setColor(new Color(255, 255, 255, (int) (120 * happyHourFlash / 1.5)));
+            g.fill(new RoundRectangle2D.Double(x, y, w, h, 14, 14));
+        }
+    }
+
+    /** Order tickets on a rail above the kitchen, showing cooking progress. */
     private void paintTicketRail(Graphics2D g, Restaurant r) {
         int x0 = 690;
         g.setColor(new Color(150, 156, 164));
@@ -460,8 +530,8 @@ final class World {
             g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 11));
             g.setColor(new Color(60, 40, 30));
             g.drawString(o.getLabel().replace("Order ", "") + "  " + TurnFlow.name(o.getCustomer()), (float) (tx + 5 + sway), 28);
-            g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
-            g.drawString(o.getItem().getName(), (float) (tx + 5 + sway), 42);
+            g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
+            g.drawString(UiKit.fit(g, o.getItem().getName().replace(" Combo", ""), 82), (float) (tx + 5 + sway), 42);
             int units = o.getItem().getPrepUnits();
             for (int u = 0; u < units; u++) {
                 boolean done = u < o.getUnitsDone();
@@ -477,7 +547,7 @@ final class World {
         }
     }
 
-    /** Name, mood bar and a small icon for what the customer is waiting for. */
+    /** Name, mood bar and a small icon showing what the customer is waiting for. */
     private void paintStatus(Graphics2D g, CustomerActor a) {
         Customer c = a.customer;
         double cx = a.x;
@@ -589,7 +659,7 @@ final class World {
         g.drawString(b.text, (float) (bx + 9 + iconW), (float) (by + h / 2 + 4.5));
     }
 
-    // ---------------------------------------------------------------- hover
+    // ----- hover -----
 
     /** The customer under the mouse, or null. */
     Customer customerAt(double mx, double my) {

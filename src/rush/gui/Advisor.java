@@ -8,14 +8,14 @@ import rush.domain.OrderStatus;
 import rush.domain.Restaurant;
 
 /**
- * The "Manager's tip" shown above the choices: it reads the restaurant and
- * suggests a sensible next step, so a new player always knows what to do.
- * It only gives advice; the player can choose anything, and the controller
- * still decides what is allowed.
+ * The "Manager's tip" shown above the choices. It looks at the restaurant and
+ * suggests a good next step, so a new player always knows what to do. It only
+ * gives advice: the player can pick anything, and the controller still decides
+ * what is allowed.
  */
 final class Advisor {
 
-    /** A suggestion: the words to show and which option to highlight (may be null). */
+    /** A tip: the text to show and which option to highlight (can be null). */
     static final class Tip {
         final String text;
         final TurnFlow.Option recommended;
@@ -35,6 +35,8 @@ final class Advisor {
         }
         Restaurant r = flow.game().getRestaurant();
         switch (flow.phase()) {
+            case HOST:
+                return hostTip(r, options, flow);
             case WAITER:
                 return waiterTip(r, options);
             case CHEF:
@@ -86,6 +88,38 @@ final class Advisor {
         return new Tip("Nothing needs the Waiter right now. Choose Wait.", waitOption(options));
     }
 
+    private static Tip hostTip(Restaurant r, List<TurnFlow.Option> options, TurnFlow flow) {
+        String prefix = suggestHappyHour(flow)
+                ? "Happy Hour could help now (press Y): waiting guests recover 15 for two turns, but orders are 20% off. " : "";
+        if (!r.getWaitingQueue().isEmpty() && r.hasFreeTable()) {
+            Customer next = lowestInQueue(r);
+            for (TurnFlow.Option o : options) {
+                if (o.kind == TurnFlow.Kind.SEAT && o.customer == next) {
+                    return new Tip(prefix + "Let the Host seat " + first(next)
+                            + " now - that keeps the Waiter free for another task this turn.", o);
+                }
+            }
+        }
+        String why = r.getWaitingQueue().isEmpty() ? "Nobody is waiting at the door" : "There is no free table";
+        return new Tip(prefix + why + ", so the Host can Wait.", waitOption(options));
+    }
+
+    /** Suggests Happy Hour if it is still available and several guests are waiting or someone is about to leave. */
+    static boolean suggestHappyHour(TurnFlow flow) {
+        if (!flow.canActivateHappyHour()) {
+            return false;
+        }
+        List<Customer> waiting = flow.game().getRestaurant().getCustomersWaitingForService();
+        int count = 0;
+        for (Customer c : waiting) {
+            count++;
+            if (urgency(c) < 4) {
+                return true;
+            }
+        }
+        return count >= 2;
+    }
+
     private static Tip chefTip(List<TurnFlow.Option> options) {
         TurnFlow.Option best = null;
         for (TurnFlow.Option o : options) {
@@ -115,8 +149,8 @@ final class Advisor {
     }
 
     /**
-     * Turns this customer could still wait before walking out. Customer types lose
-     * patience at different rates, so this ranks them fairly (lower = more urgent).
+     * How many more turns this customer can wait before leaving. Customer types
+     * lose patience at different speeds, so this compares them fairly (lower = more urgent).
      */
     static double urgency(Customer c) {
         return c.getSatisfaction() / (double) Math.max(1, c.getSatisfactionLossPerTurn());

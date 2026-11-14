@@ -16,10 +16,10 @@ import java.awt.geom.RoundRectangle2D;
 
 import rush.domain.MenuItem;
 
-/** Draws a chibi-style character from simple shapes. (x, y) is where the feet are. */
+/** Draws a chibi-style character from simple shapes. (x, y) is the position of the feet. */
 final class CharacterPainter {
 
-    /** How the character is posed in this frame. */
+    /** The character's pose in this frame. */
     static final class Pose {
         double walkPhase;
         boolean moving;
@@ -165,6 +165,18 @@ final class CharacterPainter {
                 g.setColor(look.outfit.brighter());
                 g.fill(new RoundRectangle2D.Double(x - 9, top - 2, 18, 7, 6, 6));
                 break;
+            case HOST_SASH:
+                g.setColor(look.accent);
+                Path2D sash = new Path2D.Double();
+                sash.moveTo(x - 15, top + 4);
+                sash.lineTo(x - 9, top + 2);
+                sash.lineTo(x + 15, top + 28);
+                sash.lineTo(x + 13, top + 33);
+                sash.closePath();
+                g.fill(sash);
+                g.setColor(Color.WHITE);
+                g.fill(new RoundRectangle2D.Double(x - 12, top + 12, 9, 6, 2, 2));
+                break;
             default:
                 paintCustomerDetail(g, look, x, top);
                 break;
@@ -174,7 +186,7 @@ final class CharacterPainter {
         g.draw(body);
     }
 
-    /** A collar for everyday clothes; extended in later stages for special customers. */
+    /** A collar for everyday clothes. Later stages add styles for special customers. */
     private static void paintCustomerDetail(Graphics2D g, Look look, double x, double top) {
         g.setColor(look.outfit.brighter());
         Path2D collar = new Path2D.Double();

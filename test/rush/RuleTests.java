@@ -8,6 +8,7 @@ import rush.control.GameConfig;
 import rush.control.GameController;
 import rush.control.GameResult;
 import rush.domain.ActionResult;
+import rush.domain.ComboMeal;
 import rush.domain.CriticCustomer;
 import rush.domain.Customer;
 import rush.domain.CustomerStatus;
@@ -21,9 +22,9 @@ import rush.domain.RegularCustomer;
 import rush.domain.VIPCustomer;
 
 /**
- * Plain-Java rule tests (no external libraries, so they run offline with javac only).
- * Run with ./run-tests.sh. Each test drives the controller directly, without the UI,
- * which also shows that the rules do not live in the UI.
+ * Simple rule tests in plain Java (no libraries, so they run offline with just javac).
+ * Run with ./run-tests.sh. Each test uses the controller directly without the UI,
+ * which also shows that the rules are not in the UI.
  */
 public final class RuleTests {
 
@@ -42,6 +43,9 @@ public final class RuleTests {
         idleGameIsDefeat();
         customerTypesBehaveDifferently();
         criticReactsToServiceSpeed();
+        comboMealIsSumOfComponents();
+        happyHourPricingAndLimits();
+        hostAndWaiterCanBothSeat();
 
         System.out.println(passed + " checks passed, " + failures.size() + " failed.");
         for (String failure : failures) {
@@ -52,7 +56,7 @@ public final class RuleTests {
         }
     }
 
-    // ------------------------------------------------------------------ tests
+    // ----- tests -----
 
     private static void moneyIsRoundedToNearestCent() {
         check("Salad+Pasta combo price", Money.percentOf(900 + 1800, 90) == 2430);
@@ -83,7 +87,7 @@ public final class RuleTests {
         game.endTurn();
         check("3.3 turn 2 -> 84", c1.getSatisfaction() == 84);
 
-        game.beginTurn();                  // turn 3: unit 2 of 2, READY but not servable
+        game.beginTurn();                  // turn 3: unit 2 of 2, READY but cannot be served yet
         ActionResult early = game.waiterServe(pasta);
         check("cannot serve unfinished dish", !early.isSuccess());
         check("failed serve keeps the waiter free", game.isWaiterAvailable());
@@ -179,7 +183,7 @@ public final class RuleTests {
         check("idle manager loses", game.getResult() == GameResult.DEFEAT);
     }
 
-    // ---------------------------------------------------------- stage 2 tests
+    // ----- stage 2 tests -----
 
     private static void customerTypesBehaveDifferently() {
         Menu menu = Menu.createDefault();
@@ -200,13 +204,13 @@ public final class RuleTests {
         check("critic loses 12 per waiting turn", critic.getSatisfaction() == 88);
     }
 
-    /** Critic served 2 turns after ordering gains 10; served 3 turns after loses 10. */
+    /** A Critic served 2 turns after ordering gains 10; served 3 turns after, loses 10. */
     private static void criticReactsToServiceSpeed() {
         check("fast critic +10", criticSatisfactionAfterService(0) == 64 + 10);
         check("slow critic -10", criticSatisfactionAfterService(1) == 52 - 10);
     }
 
-    /** Critic arrives turn 1, ordered turn 2; extraDelay turns of waiting before serving. */
+    /** The Critic arrives on turn 1 and orders on turn 2, then waits extraDelay more turns before being served. */
     private static int criticSatisfactionAfterService(int extraDelay) {
         ArrivalSchedule schedule = new ArrivalSchedule();
         schedule.add(1, CriticCustomer::new);
@@ -235,7 +239,86 @@ public final class RuleTests {
         return critic.getSatisfaction();
     }
 
-    // ---------------------------------------------------------------- helpers
+    // ----- stage 3 tests -----
+
+    private static void comboMealIsSumOfComponents() {
+        Menu menu = Menu.createDefault();
+        ComboMeal combo = new ComboMeal(menu.findByName("Salad"), menu.findByName("Pasta"));
+        check("combo price 90% of $27 = $24.30", combo.getPriceCents() == 2430);
+        check("combo units 1 + 2 = 3", combo.getPrepUnits() == 3);
+        check("combo has two components", combo.getComponents().size() == 2);
+        check("menu has 5 items", menu.getItems().size() == 5);
+        check("customer 4 picks Salad + Burger combo", menu.itemForArrival(4).getPriceCents() == 2160);
+        check("customer 5 picks Salad + Pasta combo", menu.itemForArrival(5).getPriceCents() == 2430);
+    }
+
+    /** VIP Burger in Happy Hour = $10.80; price is fixed; once per game; lasts 2 turns. */
+    private static void happyHourPricingAndLimits() {
+        ArrivalSchedule schedule = new ArrivalSchedule();
+        schedule.add(1, VIPCustomer::new);
+        schedule.add(2, RegularCustomer::new);
+        Menu burgerOnly = new Menu();
+        burgerOnly.add(new MenuItem("Burger", 1500, 1));
+        GameController game = new GameController(GameConfig.base(), schedule, burgerOnly);
+
+        game.beginTurn();                                          // turn 1
+        Customer vip = game.getRestaurant().getWaitingQueue().get(0);
+        check("activate Happy Hour", game.activateHappyHour().isSuccess());
+        check("active, 2 turns left", game.getHappyHour().getRemainingTurns() == 2);
+        check("cannot activate twice", !game.activateHappyHour().isSuccess());
+        game.hostSeat(vip);
+        game.waiterTakeOrder(vip);
+        check("VIP burger in Happy Hour = $10.80", vip.getOrder().getPriceCents() == 1080);
+        game.chefPrepare(vip.getOrder());
+        game.endTurn();
+
+        game.beginTurn();                                          // turn 2: still active
+        check("still active on turn 2", game.getHappyHour().isActive()
+                && game.getHappyHour().getRemainingTurns() == 1);
+        Customer regular = game.getRestaurant().getWaitingQueue().get(0);
+        check("arrival capped at 100 after recovery", regular.getSatisfaction() == 100);
+        game.hostSeat(regular);
+        game.waiterServe(vip.getOrder());
+        game.chefWait();
+        game.endTurn();
+        check("Happy Hour over after 2 turns", !game.getHappyHour().isActive());
+
+        game.beginTurn();                                          // turn 3: regular orders, no discount
+        check("recovery stops after Happy Hour", regular.getSatisfaction() == 92);
+        game.waiterTakeOrder(regular);
+        check("regular burger after Happy Hour = $15.00", regular.getOrder().getPriceCents() == 1500);
+        check("VIP price stayed locked", vip.getOrder().getPriceCents() == 1080);
+        check("activation refused after staff act", !game.activateHappyHour().isSuccess());
+    }
+
+    private static void hostAndWaiterCanBothSeat() {
+        ArrivalSchedule schedule = new ArrivalSchedule();
+        schedule.add(1, RegularCustomer::new);
+        schedule.add(2, RegularCustomer::new);
+        schedule.add(3, RegularCustomer::new);
+        GameController game = new GameController(GameConfig.base(), schedule, Menu.createDefault());
+        game.beginTurn();
+        game.hostWait();
+        game.waiterWait();
+        game.chefWait();
+        game.endTurn();
+        game.beginTurn();                                          // C1 and C2 queued
+        List<Customer> queue = game.getRestaurant().getWaitingQueue();
+        Customer c1 = queue.get(0);
+        Customer c2 = queue.get(1);
+        check("host seats C1", game.hostSeat(c1).isSuccess());
+        check("host only once per turn", !game.hostSeat(c2).isSuccess());
+        check("waiter also seats C2", game.waiterSeat(c2).isSuccess());
+        game.chefWait();
+        game.endTurn();
+        game.beginTurn();                                          // C3 arrives, no free table
+        Customer c3 = game.getRestaurant().getWaitingQueue().get(0);
+        ActionResult full = game.hostSeat(c3);
+        check("no free table is refused", !full.isSuccess());
+        check("refusal keeps host available", game.isHostAvailable());
+    }
+
+    // ----- helpers -----
 
     private static void check(String name, boolean condition) {
         if (condition) {

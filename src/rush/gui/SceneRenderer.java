@@ -45,7 +45,7 @@ final class SceneRenderer {
         return Math.max(0, Math.min(1, (turn - 1) / (double) (totalTurns - 1)));
     }
 
-    // ------------------------------------------------------------ helpers
+    // ----- helpers -----
 
     static Point2D.Double iso(double gx, double gy) {
         return Layout.iso(gx, gy);
@@ -65,17 +65,17 @@ final class SceneRenderer {
         return p;
     }
 
-    /** Transform for drawing flat on a surface that runs along +gx (right wall, front-left faces). */
+    /** Transform for drawing flat on a surface along +gx (right wall, front-left faces). */
     static AffineTransform alongX(Point2D origin) {
         return new AffineTransform(1, 0.5, 0, 1, origin.getX(), origin.getY());
     }
 
-    /** Transform for drawing flat on a surface that runs along -gy (left wall, front-right faces). */
+    /** Transform for drawing flat on a surface along -gy (left wall, front-right faces). */
     static AffineTransform alongY(Point2D origin) {
         return new AffineTransform(1, -0.5, 0, 1, origin.getX(), origin.getY());
     }
 
-    /** An isometric box with a lit top and two shaded front faces. */
+    /** An isometric box with a lit top and two shaded front sides. */
     static void box(Graphics2D g, double gx0, double gy0, double gx1, double gy1, double h, Color top) {
         Point2D a = iso(gx0, gy0);
         Point2D b = iso(gx1, gy0);
@@ -113,9 +113,9 @@ final class SceneRenderer {
         return t < 0.5 ? blend(a, b, t * 2) : blend(b, c, (t - 0.5) * 2);
     }
 
-    // ---------------------------------------------------------- the room
+    // ----- the room -----
 
-    /** Everything that only changes once per turn (cached as an image by World). */
+    /** Everything that only changes once a turn (World caches it as an image). */
     static void paintStaticRoom(Graphics2D g, double evening, int turn, int totalTurns, List<MenuItem> menu) {
         g.setPaint(new GradientPaint(0, 0, new Color(74, 52, 86), 0, Layout.SCENE_H, new Color(40, 30, 54)));
         g.fillRect(0, 0, Layout.SCENE_W, Layout.SCENE_H);
@@ -262,7 +262,7 @@ final class SceneRenderer {
         g.fill(poly(iso(0.05, 6.2), iso(1.0, 6.2), iso(1.0, 7.6), iso(0.05, 7.6)));
     }
 
-    /** Draws a rectangle (local px, y up = negative) on the right wall between gx0 and gx1. */
+    /** Draws a rectangle on the right wall between gx0 and gx1 (local px, negative y is up). */
     private static AffineTransform onRightWall(Graphics2D g, double gx0) {
         AffineTransform saved = g.getTransform();
         g.transform(alongX(iso(gx0, 0)));
@@ -394,7 +394,7 @@ final class SceneRenderer {
         g.setTransform(saved);
     }
 
-    /** A wall clock whose hands move on with each turn (6 pm to midnight). */
+    /** A wall clock whose hands move forward each turn (6 pm to midnight). */
     private static void paintClock(Graphics2D g, int turn, int totalTurns) {
         AffineTransform saved = onLeftWall(g, 2.6);
         double cx = 16;
@@ -512,9 +512,9 @@ final class SceneRenderer {
         }
     }
 
-    // ------------------------------------------------------------ furniture
+    // ----- furniture -----
 
-    /** Cashier counter with register: drawn as two one-tile segments for correct depth. */
+    /** Cashier counter with till, drawn as two one-tile pieces so the depth looks right. */
     static void paintCashierSegment(Graphics2D g, int segment) {
         double gy0 = segment == 0 ? 1.0 : 2.1;
         double gy1 = segment == 0 ? 2.1 : 3.2;
@@ -537,6 +537,24 @@ final class SceneRenderer {
             drawCentered(g, "PAY", 17, -16);
             g.setTransform(saved);
         }
+    }
+
+    /** The Host's podium by the entrance, with a reservation book and a little lamp. */
+    static void paintPodium(Graphics2D g) {
+        double gx = Layout.PODIUM[0];
+        double gy = Layout.PODIUM[1];
+        box(g, gx - 0.28, gy - 0.28, gx + 0.28, gy + 0.28, 42, new Color(150, 90, 54));
+        Point2D top = up(iso(gx, gy), 42);
+        g.setColor(new Color(250, 246, 236));
+        g.fill(new RoundRectangle2D.Double(top.getX() - 10, top.getY() - 6, 20, 9, 2, 2));
+        g.setColor(new Color(190, 50, 60));
+        g.fill(new Rectangle2D.Double(top.getX() - 1, top.getY() - 6, 2, 9));
+        AffineTransform saved = g.getTransform();
+        g.transform(alongX(iso(gx - 0.28, gy + 0.28)));
+        g.setColor(new Color(255, 200, 80));
+        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 7));
+        g.drawString("HOST", 2, -24);
+        g.setTransform(saved);
     }
 
     /** One tile of the kitchen back row: 0-1 stoves, 2 prep counter, 3 sink, 4 fridge. */
@@ -631,7 +649,7 @@ final class SceneRenderer {
         }
     }
 
-    /** A wooden chair seen from the front; the diner sits on it facing the viewer. */
+    /** A wooden chair seen from the front. The diner sits on it facing the viewer. */
     static void paintChair(Graphics2D g, Point2D seat) {
         double x = seat.getX();
         double y = seat.getY();
@@ -733,9 +751,9 @@ final class SceneRenderer {
         g.fill(new Ellipse2D.Double(x + 8 + sway, y - 50, 6, 6));
     }
 
-    // ------------------------------------------------------------- lighting
+    // ----- lighting -----
 
-    /** Evening darkness, with warm pools of light from the lamps (cached per turn). */
+    /** Evening darkness with warm light from the lamps (cached each turn). */
     static void paintLighting(Graphics2D g, double evening) {
         int dark = (int) (10 + evening * 80);
         g.setColor(new Color(20, 16, 50, dark));

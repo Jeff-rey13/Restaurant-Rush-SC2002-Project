@@ -13,18 +13,18 @@ import rush.domain.OrderStatus;
 import rush.domain.Restaurant;
 
 /**
- * Sequences one turn for the window version: which staff member is choosing,
- * which choices to offer, and when the turn ends. Like ConsoleUI, it holds no
- * game rules: every choice is passed to GameController, which accepts it or
- * returns the reason it is not allowed.
+ * Runs one turn in the window version: which staff member is choosing, which
+ * choices to show, and when the turn ends. Like ConsoleUI, it has no game
+ * rules. Every choice goes to GameController, which accepts it or returns the
+ * reason it is not allowed.
  */
 final class TurnFlow {
 
-    enum Role { WAITER, CHEF }
+    enum Role { HOST, WAITER, CHEF }
 
     enum Kind { SEAT, TAKE_ORDER, SERVE, COOK, WAIT }
 
-    enum Phase { WAITER, CHEF, TURN_END, GAME_OVER }
+    enum Phase { HOST, WAITER, CHEF, TURN_END, GAME_OVER }
 
     enum LogKind { TURN, ARRIVAL, ACTION, REFUSED, EVENT }
 
@@ -50,11 +50,13 @@ final class TurnFlow {
         }
     }
 
-    /** What the window reacts to (animation, sound, log). */
+    /** Things the window reacts to (animation, sound, log). */
     interface Listener {
         void onLog(String text, LogKind kind);
 
         void onStaffAction(Option option, ActionResult result);
+
+        void onHappyHour(ActionResult result);
 
         void onTurnEnded();
 
@@ -98,7 +100,7 @@ final class TurnFlow {
         advance();
     }
 
-    /** Runs a choice. A refused choice keeps the same phase so the manager can choose again. */
+    /** Runs a choice. If it is refused, the phase stays the same so the manager can choose again. */
     void choose(Option option) {
         if (phase == Phase.TURN_END || phase == Phase.GAME_OVER) {
             return;
@@ -111,9 +113,25 @@ final class TurnFlow {
         }
     }
 
-    /** Moves to whichever staff member has not acted yet; ends the turn when all have. */
+    /** Happy Hour can be turned on once per game, at the start of a turn (the controller checks this). */
+    boolean canActivateHappyHour() {
+        return game != null && game.canActivateHappyHour() && phase == Phase.HOST;
+    }
+
+    void activateHappyHour() {
+        if (phase == Phase.TURN_END || phase == Phase.GAME_OVER) {
+            return;
+        }
+        ActionResult result = game.activateHappyHour();
+        listener.onLog(result.getMessage(), result.isSuccess() ? LogKind.ACTION : LogKind.REFUSED);
+        listener.onHappyHour(result);
+    }
+
+    /** Moves to the next staff member who has not acted yet (Host, Waiter, Chef). Ends the turn when all have. */
     private void advance() {
-        if (game.isWaiterAvailable()) {
+        if (game.isHostAvailable()) {
+            phase = Phase.HOST;
+        } else if (game.isWaiterAvailable()) {
             phase = Phase.WAITER;
         } else if (game.isChefAvailable()) {
             phase = Phase.CHEF;
@@ -131,12 +149,18 @@ final class TurnFlow {
         }
     }
 
-    // ------------------------------------------------------------ options
+    // ----- options -----
 
-    /** The choices for the staff member whose turn it is, ending with Wait. */
+    /** The choices for the current staff member, ending with Wait. */
     List<Option> options() {
         List<Option> list = new ArrayList<>();
-        if (phase == Phase.WAITER) {
+        if (phase == Phase.HOST) {
+            for (Customer c : game.getRestaurant().getWaitingQueue()) {
+                list.add(hostSeat(c));
+            }
+            list.add(new Option(Role.HOST, Kind.WAIT, "Wait", "the Host does nothing this turn", null, null,
+                    game::hostWait));
+        } else if (phase == Phase.WAITER) {
             Restaurant r = game.getRestaurant();
             for (Customer c : r.getWaitingQueue()) {
                 list.add(seat(c));
@@ -164,6 +188,11 @@ final class TurnFlow {
                 "waiting in the queue, mood " + c.getSatisfaction(), c, null, () -> game.waiterSeat(c));
     }
 
+    Option hostSeat(Customer c) {
+        return new Option(Role.HOST, Kind.SEAT, "Host seats " + name(c),
+                "waiting in the queue, mood " + c.getSatisfaction(), c, null, () -> game.hostSeat(c));
+    }
+
     Option takeOrder(Customer c) {
         return new Option(Role.WAITER, Kind.TAKE_ORDER, "Take " + name(c) + "'s order",
                 "seated at Table " + c.getTable().getNumber(), c, null, () -> game.waiterTakeOrder(c));
@@ -182,6 +211,9 @@ final class TurnFlow {
     }
 
     Option waitOption(Role role) {
+        if (role == Role.HOST) {
+            return new Option(role, Kind.WAIT, "Wait", "", null, null, game::hostWait);
+        }
         return role == Role.WAITER
                 ? new Option(role, Kind.WAIT, "Wait", "", null, null, game::waiterWait)
                 : new Option(role, Kind.WAIT, "Wait", "", null, null, game::chefWait);

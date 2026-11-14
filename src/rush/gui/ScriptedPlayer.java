@@ -12,14 +12,15 @@ import rush.domain.Order;
 import rush.domain.Restaurant;
 
 /**
- * Plays a command-line test script (tests/*.txt) in the game window, reading the
- * answers exactly as ConsoleUI would, so the window shows the same run as the
- * saved transcript. Useful for an accelerated replay in the video.
+ * Plays a command-line test script (tests/*.txt) in the game window. It reads
+ * the answers the same way ConsoleUI does, so the window shows the same run as
+ * the saved transcript. Handy for a sped-up replay in the video.
  */
 final class ScriptedPlayer {
 
     private final List<String> answers;
     private int next;
+    private int happyHourAskedOn = -1;
 
     ScriptedPlayer(List<String> lines) {
         answers = new ArrayList<>();
@@ -34,10 +35,24 @@ final class ScriptedPlayer {
         return new ScriptedPlayer(Files.readAllLines(file, StandardCharsets.UTF_8));
     }
 
-    /** Performs one manager step; returns false when the script has run out. */
+    /** Does one manager step. Returns false when the script runs out. */
     boolean step(TurnFlow flow) {
         try {
-            if (flow.phase() == TurnFlow.Phase.WAITER) {
+            int turn = flow.game().getCurrentTurn();
+            if (flow.phase() == TurnFlow.Phase.HOST && turn != happyHourAskedOn) {
+                happyHourAskedOn = turn;
+                if (flow.canActivateHappyHour()) {
+                    if (nextChoice(0, 1) == 1) {
+                        flow.activateHappyHour();
+                    }
+                    return true;
+                }
+            }
+            if (flow.phase() == TurnFlow.Phase.HOST) {
+                List<Customer> queue = flow.game().getRestaurant().getWaitingQueue();
+                int choice = nextChoice(0, queue.size());
+                flow.choose(choice == 0 ? flow.waitOption(TurnFlow.Role.HOST) : flow.hostSeat(queue.get(choice - 1)));
+            } else if (flow.phase() == TurnFlow.Phase.WAITER) {
                 waiterStep(flow);
             } else if (flow.phase() == TurnFlow.Phase.CHEF) {
                 List<Order> orders = flow.game().getRestaurant().getActiveOrders();
@@ -76,7 +91,7 @@ final class ScriptedPlayer {
         }
     }
 
-    /** Like ConsoleUI: an empty list asks for nothing; 0 means "back". */
+    /** Same as ConsoleUI: an empty list asks nothing; 0 means "back". */
     private Customer pick(List<Customer> candidates) {
         if (candidates.isEmpty()) {
             return null;
@@ -85,7 +100,7 @@ final class ScriptedPlayer {
         return choice == 0 ? null : candidates.get(choice - 1);
     }
 
-    /** Like InputReader: skips answers that are not numbers in range. */
+    /** Same as InputReader: skips answers that are not numbers in range. */
     int nextChoice(int min, int max) {
         while (next < answers.size()) {
             String text = answers.get(next++);

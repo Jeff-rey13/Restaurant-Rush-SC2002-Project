@@ -7,7 +7,7 @@ final class Look {
 
     enum Hair { SHORT, LONG, BUN, CURLY, BALD, SPIKY }
 
-    enum Accessory { NONE, CHEF_HAT, WAITER_VEST, CASHIER_CAP, VIP_SUIT, CRITIC_BERET }
+    enum Accessory { NONE, CHEF_HAT, WAITER_VEST, CASHIER_CAP, VIP_SUIT, CRITIC_BERET, HOST_SASH }
 
     final Color skin;
     final Color hair;

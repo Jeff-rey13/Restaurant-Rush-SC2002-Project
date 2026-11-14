@@ -9,14 +9,15 @@ import rush.control.GameResult;
 import rush.control.GameStats;
 import rush.domain.ActionResult;
 import rush.domain.Customer;
+import rush.domain.HappyHour;
 import rush.domain.MenuItem;
 import rush.domain.Money;
 import rush.domain.Order;
 import rush.domain.Table;
 
 /**
- * Boundary class. It only displays the game state and collects the manager's
- * decisions; every rule check happens in the controller and domain objects.
+ * Boundary class. It only shows the game state and collects the manager's
+ * choices. All rule checks happen in the controller and domain classes.
  */
 public class ConsoleUI {
 
@@ -45,7 +46,7 @@ public class ConsoleUI {
         }
     }
 
-    // ------------------------------------------------------------- one turn
+    // ----- one turn -----
 
     private void playTurn() {
         List<String> arrivals = game.beginTurn();
@@ -54,11 +55,42 @@ public class ConsoleUI {
                 + game.getConfig().getTotalTurns() + " ====================");
         printEvents(arrivals);
         showStatus();
+        happyHourPhase();
+        hostPhase();
         waiterPhase();
         chefPhase();
         out.println(LINE);
         printEvents(game.endTurn());
         showEndOfTurn();
+    }
+
+    private void happyHourPhase() {
+        if (!game.canActivateHappyHour()) {
+            return;
+        }
+        out.println();
+        out.println("HAPPY HOUR (once per game): 20% off orders taken this turn and next;");
+        out.println("customers waiting for a table or food recover " + HappyHour.RECOVERY_POINTS
+                + " satisfaction at the start of each active turn.");
+        out.println("  1) Switch Happy Hour on now");
+        out.println("  0) Not now");
+        if (input.readChoice("Happy Hour", 0, 1) == 1) {
+            report(game.activateHappyHour());
+        }
+    }
+
+    private void hostPhase() {
+        while (game.isHostAvailable()) {
+            out.println();
+            out.println("HOST - seat one queued customer (in addition to the Waiter), or wait:");
+            List<Customer> queue = game.getRestaurant().getWaitingQueue();
+            for (int i = 0; i < queue.size(); i++) {
+                out.println("  " + (i + 1) + ") Seat " + describeCustomer(queue.get(i)));
+            }
+            out.println("  0) Wait");
+            int choice = input.readChoice("Host task", 0, queue.size());
+            report(choice == 0 ? game.hostWait() : game.hostSeat(queue.get(choice - 1)));
+        }
     }
 
     private void waiterPhase() {
@@ -104,7 +136,7 @@ public class ConsoleUI {
         }
     }
 
-    /** Shows the candidates and returns the chosen one, or null for "back". */
+    /** Shows the options and returns the chosen one, or null for "back". */
     private Customer pickCustomer(String question, List<Customer> candidates, String emptyMessage) {
         if (candidates.isEmpty()) {
             out.println("  Cannot do that: " + emptyMessage + " Choose again.");
@@ -136,7 +168,7 @@ public class ConsoleUI {
 
     private void report(ActionResult result) {
         if (result == null) {
-            return; // the manager went back; nothing was attempted
+            return; // the manager went back, so nothing was tried
         }
         if (result.isSuccess()) {
             out.println("  OK: " + result.getMessage());
@@ -145,7 +177,7 @@ public class ConsoleUI {
         }
     }
 
-    // ------------------------------------------------------------- display
+    // ----- display -----
 
     private void showWelcome() {
         GameConfig config = game.getConfig();
@@ -153,7 +185,8 @@ public class ConsoleUI {
         out.println(" RESTAURANT RUSH - you are the manager");
         out.println(LINE);
         out.println(" " + config.getTotalTurns() + " turns, " + config.getTableCount()
-                + " tables, one Waiter, one Chef, one Cashier.");
+                + " tables, one Host, one Waiter, one Chef, one Cashier.");
+        out.println(" Each turn: optional Happy Hour (once per game), then Host, Waiter, Chef act in that order.");
         out.println(" Goal after the last turn: at least " + config.getTargetPaidCustomers()
                 + " paid customers, revenue at least " + Money.format(config.getTargetRevenueCents())
                 + ", average satisfaction of paid customers at least " + config.getTargetAverageSatisfaction() + ".");
@@ -171,6 +204,7 @@ public class ConsoleUI {
         out.println("Revenue: " + Money.format(stats.getRevenueCents())
                 + " | Paid customers: " + stats.getPaidCustomers()
                 + " | Avg satisfaction (paid): " + formatAverage(stats));
+        out.println("Happy Hour: " + describeHappyHour(game.getHappyHour()));
         List<Customer> queue = game.getRestaurant().getWaitingQueue();
         out.println(queue.isEmpty() ? "Waiting queue: (empty)" : "Waiting queue:");
         for (Customer customer : queue) {
@@ -244,6 +278,15 @@ public class ConsoleUI {
     private String describeOrder(Order order) {
         return order.getLabel() + " for " + order.getCustomer().getLabel() + ": "
                 + order.getItem().getName() + ", " + order.getStatus() + " (" + order.getProgress() + ")";
+    }
+
+    private static String describeHappyHour(HappyHour happyHour) {
+        if (happyHour.isActive()) {
+            return happyHour.getRemainingTurns() == 1
+                    ? "ACTIVE - last turn (20% off orders taken now)"
+                    : "ACTIVE - " + happyHour.getRemainingTurns() + " turns left including this one (20% off orders taken now)";
+        }
+        return happyHour.isAvailable() ? "available (not used yet)" : "used";
     }
 
     private static String formatAverage(GameStats stats) {
