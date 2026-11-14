@@ -145,7 +145,7 @@ final class World {
         a.shownStatus = CustomerStatus.WAITING;
         a.walkTo(Layout.DOOR_INSIDE);
         a.walkTo(Layout.queueSlot(Math.max(0, slot)));
-        a.say("Hello! Table for one?", null, Color.WHITE, 2.4);
+        a.say(Appearances.styleOf(c).greeting, null, Color.WHITE, 2.6);
         customers.put(c, a);
         doorOpen = 1.4;
         SoundFx.play(SoundFx.Sound.DOOR);
@@ -171,6 +171,14 @@ final class World {
             case EATING:
                 a.dishOnTable = false;
                 a.eatingFor = 0;
+                int reaction = c.getSatisfaction() - a.shownSatisfaction;
+                if (reaction > 0) {
+                    a.say("Impressive service! (+" + reaction + ")", null, new Color(200, 255, 200), 3.0);
+                    effects.confettiBurst(a.x, a.y - 80);
+                } else if (reaction < 0) {
+                    a.say("That took far too long... (" + reaction + ")", null, new Color(255, 200, 190), 3.0);
+                    effects.puff(a.x, a.y - 70, new Color(90, 80, 80));
+                }
                 break;
             case READY_TO_PAY:
                 a.say("Delicious! Check, please.", null, GOLD, 2.8);
@@ -489,6 +497,16 @@ final class World {
         g.setColor(Color.WHITE);
         SceneRenderer.drawCentered(g, label, cx, top - 12.5);
         paintStatusIcon(g, c, cx + w / 2 + 9, top - 16);
+        Color badge = Appearances.styleOf(c).badge;
+        if (badge != null) {
+            g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 9));
+            String type = c.getTypeName().toUpperCase();
+            double bw = g.getFontMetrics().stringWidth(type) + 10;
+            g.setColor(badge);
+            g.fill(new RoundRectangle2D.Double(cx - w / 2 - bw + 4, top - 30, bw, 13, 7, 7));
+            g.setColor(Color.WHITE);
+            SceneRenderer.drawCentered(g, type, cx - w / 2 - bw / 2 + 4, top - 20.5);
+        }
     }
 
     private void paintStatusIcon(Graphics2D g, Customer c, double x, double y) {

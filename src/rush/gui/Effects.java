@@ -11,7 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
-/** Short-lived visual effects: floating numbers, steam, coins, sparkles and puffs. */
+/** Short visual effects: floating numbers, steam, coins, sparkles and puffs. */
 final class Effects {
 
     private static final class FloatText {
@@ -34,6 +34,7 @@ final class Effects {
         Color color;
         boolean gravity;
         boolean soft;
+        boolean flat;
     }
 
     private final List<FloatText> texts = new ArrayList<>();
@@ -125,7 +126,25 @@ final class Effects {
         }
     }
 
-    /** Kitchen pots steam gently all the time. */
+    /** A small burst, e.g. when a customer is impressed. */
+    void confettiBurst(double x, double y) {
+        Color[] colors = {new Color(250, 200, 60), new Color(240, 90, 90), new Color(90, 190, 120), new Color(90, 150, 240)};
+        for (int i = 0; i < 18; i++) {
+            Particle p = new Particle();
+            p.x = x;
+            p.y = y;
+            p.vx = random.nextGaussian() * 60;
+            p.vy = -90 - random.nextDouble() * 70;
+            p.ttl = 1.2;
+            p.size = 5;
+            p.color = colors[i % colors.length];
+            p.gravity = true;
+            p.flat = true;
+            particles.add(p);
+        }
+    }
+
+    /** Steam rises from the kitchen pots all the time. */
     void ambient(double dt) {
         steamTimer -= dt;
         if (steamTimer <= 0) {
@@ -167,7 +186,9 @@ final class Effects {
             g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, p.soft ? a * 0.35f : a));
             g.setColor(p.color);
             double s = p.soft ? p.size * (1 + p.life) : p.size;
-            if (p.gravity) {
+            if (p.flat) {
+                g.fill(new java.awt.geom.Rectangle2D.Double(p.x - s / 2, p.y - s / 4, s, s / 2));
+            } else if (p.gravity) {
                 g.fill(new Ellipse2D.Double(p.x - s / 2, p.y - s / 2, s, s * 0.8));
                 g.setColor(new Color(200, 150, 30));
                 g.fill(new Ellipse2D.Double(p.x - s / 4, p.y - s / 4, s / 2, s / 2.5));

@@ -67,7 +67,7 @@ public class GameController {
             restaurant.admit(arrival);
             events.add(arrival.getLabel() + " (" + arrival.getTypeName()
                     + ") arrives and joins the waiting queue with satisfaction "
-                    + arrival.getSatisfaction() + ".");
+                    + arrival.getSatisfaction() + ". Behaviour: " + arrival.describeBehaviour() + ".");
         }
         return events;
     }

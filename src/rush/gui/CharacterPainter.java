@@ -11,6 +11,7 @@ import java.awt.geom.Arc2D;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 
 import rush.domain.MenuItem;
@@ -137,6 +138,33 @@ final class CharacterPainter {
                 g.setColor(look.outfit.darker());
                 g.fill(new Ellipse2D.Double(x - 2, top + 3, 4, 4));
                 break;
+            case VIP_SUIT:
+                g.setColor(new Color(250, 246, 236));
+                Path2D shirt = new Path2D.Double();
+                shirt.moveTo(x - 6, top);
+                shirt.lineTo(x + 6, top);
+                shirt.lineTo(x, top + 16);
+                shirt.closePath();
+                g.fill(shirt);
+                g.setColor(look.accent);
+                g.setStroke(new BasicStroke(2f));
+                g.draw(new Line2D.Double(x - 6, top + 1, x - 2, top + 32));
+                g.draw(new Line2D.Double(x + 6, top + 1, x + 2, top + 32));
+                Path2D gold = new Path2D.Double();
+                gold.moveTo(x, top + 4);
+                gold.lineTo(x - 6, top + 1);
+                gold.lineTo(x - 6, top + 7);
+                gold.closePath();
+                gold.moveTo(x, top + 4);
+                gold.lineTo(x + 6, top + 1);
+                gold.lineTo(x + 6, top + 7);
+                gold.closePath();
+                g.fill(gold);
+                break;
+            case CRITIC_BERET:
+                g.setColor(look.outfit.brighter());
+                g.fill(new RoundRectangle2D.Double(x - 9, top - 2, 18, 7, 6, 6));
+                break;
             default:
                 paintCustomerDetail(g, look, x, top);
                 break;
@@ -220,6 +248,12 @@ final class CharacterPainter {
         g.draw(new Line2D.Double(x + side * 13, top + 6, x + side * 16 + swing, top + 26));
         g.setColor(look.skin);
         g.fill(new Ellipse2D.Double(x + side * 16 + swing - 3.5, top + 23, 7, 7));
+        if (look.accessory == Look.Accessory.CRITIC_BERET) {
+            g.setColor(new Color(250, 246, 230));
+            g.fill(new RoundRectangle2D.Double(x + side * 16 + swing - 5, top + 13, 10, 13, 2, 2));
+            g.setColor(new Color(190, 40, 50));
+            g.fill(new Rectangle2D.Double(x + side * 16 + swing - 5, top + 13, 10, 3));
+        }
         if (look.accessory == Look.Accessory.WAITER_VEST && !p.moving) {
             g.setColor(Color.WHITE);
             g.fill(new RoundRectangle2D.Double(x + side * 15 - 4, top + 14, 8, 14, 3, 3));
@@ -331,6 +365,25 @@ final class CharacterPainter {
             g.setColor(look.accent);
             g.fill(new Arc2D.Double(x - r, cy - r - 3, 2 * r, 2 * r - 4, 0, 180, Arc2D.CHORD));
             g.fill(new RoundRectangle2D.Double(x - 2, cy - 7, r + 8, 5, 4, 4));
+        } else if (look.accessory == Look.Accessory.CRITIC_BERET) {
+            g.setColor(look.accent);
+            g.fill(new Ellipse2D.Double(x - r - 3, cy - r - 6, 2 * r + 6, 14));
+            g.fill(new Ellipse2D.Double(x - 2, cy - r - 10, 5, 6));
+            g.setColor(new Color(40, 30, 30));
+            g.setStroke(new BasicStroke(1.4f));
+            g.draw(new Ellipse2D.Double(x - 9, cy - 4, 7, 7));
+            g.draw(new Ellipse2D.Double(x + 2, cy - 4, 7, 7));
+            g.draw(new Line2D.Double(x - 2, cy - 1, x + 2, cy - 1));
+            g.setColor(new Color(70, 50, 40));
+            g.fill(new Arc2D.Double(x - 6, cy + 3, 12, 6, 0, 180, Arc2D.CHORD));
+        } else if (look.accessory == Look.Accessory.VIP_SUIT) {
+            g.setColor(new Color(30, 30, 36));
+            g.fill(new RoundRectangle2D.Double(x - 11, cy - 4, 9, 6, 3, 3));
+            g.fill(new RoundRectangle2D.Double(x + 2, cy - 4, 9, 6, 3, 3));
+            g.setStroke(new BasicStroke(1.3f));
+            g.draw(new Line2D.Double(x - 2, cy - 2, x + 2, cy - 2));
+            g.setColor(new Color(255, 255, 255, 160));
+            g.fill(new Ellipse2D.Double(x - 9, cy - 3, 2.5, 2));
         }
     }
 }

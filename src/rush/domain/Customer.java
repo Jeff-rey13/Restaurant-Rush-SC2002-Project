@@ -2,7 +2,8 @@ package rush.domain;
 
 /**
  * A customer who visits the restaurant. Subclasses define how quickly the
- * customer loses patience. All customer types follow the same order and
+ * customer loses patience, and may override the bill, the food choice and the
+ * reaction to service. All customer types follow the same order and
  * service flow, which is enforced here: the status field can only change
  * through the methods below, so no outside class can, for example, make a
  * customer pay before being served.
@@ -36,6 +37,26 @@ public abstract class Customer {
     /** The menu item this customer orders. Default: the documented cycling rule. */
     public MenuItem chooseMenuItem(Menu menu) {
         return menu.itemForArrival(number);
+    }
+
+    /** One-line description of this customer type's behaviour, shown on arrival. */
+    public String describeBehaviour() {
+        return "loses " + getSatisfactionLossPerTurn() + " satisfaction per waiting turn";
+    }
+
+    /** The bill this customer type pays for a given full price. Default: full price. */
+    public int adjustBill(int fullPriceCents) {
+        return fullPriceCents;
+    }
+
+    /**
+     * Hook called once when the food arrives. {@code turnsSinceOrder} is how many
+     * turns passed between taking the order and serving it. Subclasses may change
+     * satisfaction here; the return value is a message for the manager, or null.
+     * Default: no reaction.
+     */
+    protected String reactToService(int turnsSinceOrder) {
+        return null;
     }
 
     // ----- queries -----
@@ -104,10 +125,16 @@ public abstract class Customer {
         status = CustomerStatus.ORDERED;
     }
 
-    public void receiveFood(int turn) {
+    /**
+     * Food arrives: the customer starts eating. This flow is the same for every
+     * customer type (final), but each type may react through reactToService.
+     * Returns the customer's reaction message, or null.
+     */
+    public final String receiveFood(int turn) {
         requireStatus(CustomerStatus.ORDERED);
         status = CustomerStatus.EATING;
         servedTurn = turn;
+        return reactToService(turn - order.getTakenTurn());
     }
 
     /** A customer served on an earlier turn finishes eating and becomes READY_TO_PAY. */
@@ -158,6 +185,11 @@ public abstract class Customer {
             table.release();
             table = null;
         }
+    }
+
+    /** Lets subclasses raise or lower satisfaction, always kept within 0..100. */
+    protected void adjustSatisfaction(int delta) {
+        setSatisfaction(satisfaction + delta);
     }
 
     private void setSatisfaction(int value) {

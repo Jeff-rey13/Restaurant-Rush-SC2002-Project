@@ -3,14 +3,22 @@ package rush;
 import java.util.ArrayList;
 import java.util.List;
 
+import rush.control.ArrivalSchedule;
+import rush.control.GameConfig;
 import rush.control.GameController;
 import rush.control.GameResult;
 import rush.domain.ActionResult;
+import rush.domain.CriticCustomer;
 import rush.domain.Customer;
 import rush.domain.CustomerStatus;
+import rush.domain.Menu;
+import rush.domain.MenuItem;
 import rush.domain.Money;
 import rush.domain.Order;
 import rush.domain.OrderStatus;
+import rush.domain.PriceCalculator;
+import rush.domain.RegularCustomer;
+import rush.domain.VIPCustomer;
 
 /**
  * Plain-Java rule tests (no external libraries, so they run offline with javac only).
@@ -32,6 +40,8 @@ public final class RuleTests {
         dishFinishedThisTurnCannotBeServedThisTurn();
         neglectedCustomerLeavesAndOrderIsCancelled();
         idleGameIsDefeat();
+        customerTypesBehaveDifferently();
+        criticReactsToServiceSpeed();
 
         System.out.println(passed + " checks passed, " + failures.size() + " failed.");
         for (String failure : failures) {
@@ -51,57 +61,58 @@ public final class RuleTests {
         check("format small", Money.format(5).equals("$0.05"));
     }
 
-    /** Brief 3.3: Pasta customer, full attention: 92, 84, 76, served, ready to pay, pays 76. */
+    /** Brief 3.3: one Regular customer orders Pasta and gets full attention. */
     private static void exampleFromBriefSection33() {
-        GameController game = GameController.createBaseGame();
-        // In the base game the first Pasta customer is C3 (arrives turn 7), so we play
-        // turns 1-6 normally and then check the brief's six-turn timeline on C3.
-        playFullAttentionUntil(game, 6);
-        game.beginTurn();                  // turn 7: C3 arrives
-        Customer c3 = game.getRestaurant().getWaitingQueue().get(0);
-        game.waiterSeat(c3);
+        ArrivalSchedule schedule = new ArrivalSchedule();
+        schedule.add(1, RegularCustomer::new);
+        Menu pastaOnly = new Menu();
+        pastaOnly.add(new MenuItem("Pasta", 1800, 2));
+        GameController game = new GameController(GameConfig.base(), schedule, pastaOnly);
+
+        game.beginTurn();                  // turn 1: arrives, seated
+        Customer c1 = game.getRestaurant().getWaitingQueue().get(0);
+        game.waiterSeat(c1);
         game.chefWait();
         game.endTurn();
-        check("3.3 turn 1 -> 92", c3.getSatisfaction() == 92);
+        check("3.3 turn 1 -> 92", c1.getSatisfaction() == 92);
 
-        game.beginTurn();                  // turn 8
-        game.waiterTakeOrder(c3);
-        Order pasta = c3.getOrder();
-        check("C3 orders Pasta", pasta.getItem().getName().equals("Pasta"));
+        game.beginTurn();                  // turn 2: order taken, unit 1 of 2
+        game.waiterTakeOrder(c1);
+        Order pasta = c1.getOrder();
         game.chefPrepare(pasta);
         game.endTurn();
-        check("3.3 turn 2 -> 84", c3.getSatisfaction() == 84);
+        check("3.3 turn 2 -> 84", c1.getSatisfaction() == 84);
 
-        game.beginTurn();                  // turn 9
+        game.beginTurn();                  // turn 3: unit 2 of 2, READY but not servable
         ActionResult early = game.waiterServe(pasta);
         check("cannot serve unfinished dish", !early.isSuccess());
+        check("failed serve keeps the waiter free", game.isWaiterAvailable());
         game.waiterWait();
         game.chefPrepare(pasta);
         check("pasta READY after 2 units", pasta.getStatus() == OrderStatus.READY);
         game.endTurn();
-        check("3.3 turn 3 -> 76", c3.getSatisfaction() == 76);
+        check("3.3 turn 3 -> 76", c1.getSatisfaction() == 76);
 
-        game.beginTurn();                  // turn 10
+        game.beginTurn();                  // turn 4: served
         check("serve READY pasta", game.waiterServe(pasta).isSuccess());
         game.chefWait();
         game.endTurn();
-        check("3.3 turn 4 no further loss", c3.getSatisfaction() == 76);
+        check("3.3 turn 4 no further loss", c1.getSatisfaction() == 76);
 
-        game.beginTurn();                  // turn 11
+        game.beginTurn();                  // turn 5: finishes eating
         game.waiterWait();
         game.chefWait();
         game.endTurn();
-        check("3.3 turn 5 READY_TO_PAY", c3.getStatus() == CustomerStatus.READY_TO_PAY);
+        check("3.3 turn 5 READY_TO_PAY", c1.getStatus() == CustomerStatus.READY_TO_PAY);
 
-        int revenueBefore = game.getStats().getRevenueCents();
-        game.beginTurn();                  // turn 12
+        game.beginTurn();                  // turn 6: pays
         game.waiterWait();
         game.chefWait();
         game.endTurn();
-        check("3.3 turn 6 PAID", c3.getStatus() == CustomerStatus.PAID);
-        check("3.3 recorded satisfaction 76", c3.getPaidSatisfaction() == 76);
-        check("3.3 revenue +$18", game.getStats().getRevenueCents() - revenueBefore == 1800);
-        check("3.3 table freed", c3.getTable() == null);
+        check("3.3 turn 6 PAID", c1.getStatus() == CustomerStatus.PAID);
+        check("3.3 recorded satisfaction 76", c1.getPaidSatisfaction() == 76);
+        check("3.3 revenue $18.00", game.getStats().getRevenueCents() == 1800);
+        check("3.3 table freed", game.getRestaurant().getTables().get(0).isFree());
     }
 
     private static void invalidChoiceDoesNotUseUpTask() {
@@ -130,7 +141,9 @@ public final class RuleTests {
     }
 
     private static void neglectedCustomerLeavesAndOrderIsCancelled() {
-        GameController game = GameController.createBaseGame();
+        ArrivalSchedule schedule = new ArrivalSchedule();
+        schedule.add(1, RegularCustomer::new);
+        GameController game = new GameController(GameConfig.base(), schedule, Menu.createDefault());
         game.beginTurn();
         Customer c1 = game.getRestaurant().getWaitingQueue().get(0);
         game.waiterSeat(c1);
@@ -166,44 +179,63 @@ public final class RuleTests {
         check("idle manager loses", game.getResult() == GameResult.DEFEAT);
     }
 
-    // ---------------------------------------------------------------- helpers
+    // ---------------------------------------------------------- stage 2 tests
 
-    /**
-     * Plays turns 1..lastTurn with the "full attention" policy for 1-unit dishes:
-     * serve if possible, else take an order, else seat; Chef cooks the oldest order.
-     */
-    private static void playFullAttentionUntil(GameController game, int lastTurn) {
-        while (game.getCurrentTurn() < lastTurn) {
-            game.beginTurn();
-            boolean done = false;
-            for (Order order : game.getRestaurant().getActiveOrders()) {
-                if (!done && order.isReadyToServe(game.getCurrentTurn())) {
-                    done = game.waiterServe(order).isSuccess();
-                }
-            }
-            for (Customer customer : game.getRestaurant().getSeatedCustomers()) {
-                if (!done && customer.getOrder() == null) {
-                    done = game.waiterTakeOrder(customer).isSuccess();
-                }
-            }
-            if (!done && !game.getRestaurant().getWaitingQueue().isEmpty()) {
-                done = game.waiterSeat(game.getRestaurant().getWaitingQueue().get(0)).isSuccess();
-            }
-            if (!done) {
-                game.waiterWait();
-            }
-            boolean cooked = false;
-            for (Order order : game.getRestaurant().getActiveOrders()) {
-                if (!cooked && order.getStatus() == OrderStatus.IN_PREPARATION) {
-                    cooked = game.chefPrepare(order).isSuccess();
-                }
-            }
-            if (!cooked) {
-                game.chefWait();
-            }
-            game.endTurn();
-        }
+    private static void customerTypesBehaveDifferently() {
+        Menu menu = Menu.createDefault();
+        MenuItem burger = menu.findByName("Burger");
+        PriceCalculator pricing = new PriceCalculator();
+        Customer regular = new RegularCustomer(2, 1);
+        Customer vip = new VIPCustomer(2, 1);
+        Customer critic = new CriticCustomer(2, 1);
+        check("regular pays full price", pricing.quote(regular, burger) == 1500);
+        check("VIP pays 10% less", pricing.quote(vip, burger) == 1350);
+        check("critic pays full price", pricing.quote(critic, burger) == 1500);
+        check("regular loses 8", regular.getSatisfactionLossPerTurn() == 8);
+        check("VIP loses 5", vip.getSatisfactionLossPerTurn() == 5);
+        check("critic loses 12", critic.getSatisfactionLossPerTurn() == 12);
+        check("customer 2 normally orders Burger", regular.chooseMenuItem(menu) == burger);
+        check("critic always orders Pasta", critic.chooseMenuItem(menu).getName().equals("Pasta"));
+        critic.loseSatisfactionForWaiting();
+        check("critic loses 12 per waiting turn", critic.getSatisfaction() == 88);
     }
+
+    /** Critic served 2 turns after ordering gains 10; served 3 turns after loses 10. */
+    private static void criticReactsToServiceSpeed() {
+        check("fast critic +10", criticSatisfactionAfterService(0) == 64 + 10);
+        check("slow critic -10", criticSatisfactionAfterService(1) == 52 - 10);
+    }
+
+    /** Critic arrives turn 1, ordered turn 2; extraDelay turns of waiting before serving. */
+    private static int criticSatisfactionAfterService(int extraDelay) {
+        ArrivalSchedule schedule = new ArrivalSchedule();
+        schedule.add(1, CriticCustomer::new);
+        GameController game = new GameController(GameConfig.base(), schedule, Menu.createDefault());
+        game.beginTurn();
+        Customer critic = game.getRestaurant().getWaitingQueue().get(0);
+        game.waiterSeat(critic);
+        game.chefWait();
+        game.endTurn();                                   // 88
+        game.beginTurn();
+        game.waiterTakeOrder(critic);
+        game.chefPrepare(critic.getOrder());
+        game.endTurn();                                   // 76
+        game.beginTurn();
+        game.waiterWait();
+        game.chefPrepare(critic.getOrder());
+        game.endTurn();                                   // 64
+        for (int i = 0; i < extraDelay; i++) {
+            game.beginTurn();
+            game.waiterWait();
+            game.chefWait();
+            game.endTurn();                               // 52
+        }
+        game.beginTurn();
+        game.waiterServe(critic.getOrder());
+        return critic.getSatisfaction();
+    }
+
+    // ---------------------------------------------------------------- helpers
 
     private static void check(String name, boolean condition) {
         if (condition) {

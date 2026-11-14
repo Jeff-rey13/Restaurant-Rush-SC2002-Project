@@ -8,6 +8,7 @@ public class PriceCalculator {
 
     /** Price in cents that this customer will pay for this item. */
     public int quote(Customer customer, MenuItem item) {
-        return item.getPriceCents();
+        // Customer-type discount is dispatched polymorphically (e.g. VIP 10% off).
+        return customer.adjustBill(item.getPriceCents());
     }
 }

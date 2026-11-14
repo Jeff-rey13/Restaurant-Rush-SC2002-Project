@@ -792,10 +792,13 @@ final class GamePanel extends JPanel implements TurnFlow.Listener {
         if (c == null) {
             return;
         }
+        g.setFont(UiKit.font(Font.PLAIN, 12));
         List<String> lines = new ArrayList<>();
         lines.add(TurnFlow.name(c) + "  -  " + c.getTypeName());
-        lines.add("Satisfaction " + c.getSatisfaction() + "  (loses " + c.getSatisfactionLossPerTurn()
-                + " per turn while waiting)");
+        lines.add("Satisfaction " + c.getSatisfaction());
+        for (String part : UiKit.wrap(g, "Behaviour: " + c.describeBehaviour(), 330)) {
+            lines.add(part);
+        }
         lines.add("Status: " + c.getStatus().name().replace('_', ' ').toLowerCase());
         Order o = c.getOrder();
         if (o != null) {

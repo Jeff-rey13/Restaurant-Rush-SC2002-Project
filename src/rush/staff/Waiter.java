@@ -10,7 +10,7 @@ import rush.domain.OrderStatus;
 import rush.domain.PriceCalculator;
 import rush.domain.Restaurant;
 
-/** The Waiter seats a customer, takes an order or serves a READY dish: one task per turn. */
+/** The Waiter does one task per turn: seat a customer, take an order or serve a READY dish. */
 public class Waiter extends Staff {
 
     public Waiter() {
@@ -67,9 +67,10 @@ public class Waiter extends Staff {
                     + order.getStatus() + ").");
         }
         order.markServed();
-        order.getCustomer().receiveFood(turn);
+        String reaction = order.getCustomer().receiveFood(turn);
         markBusy();
-        return ActionResult.ok(order.getLabel() + " (" + order.getItem().getName() + ") served to "
-                + order.getCustomer().getLabel() + ". Status: SERVED.");
+        String message = order.getLabel() + " (" + order.getItem().getName() + ") served to "
+                + order.getCustomer().getLabel() + ". Status: SERVED.";
+        return ActionResult.ok(reaction == null ? message : message + " " + reaction);
     }
 }

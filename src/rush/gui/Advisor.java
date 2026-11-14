@@ -50,7 +50,7 @@ final class Advisor {
         TurnFlow.Option best = null;
         for (TurnFlow.Option o : options) {
             if (o.kind == TurnFlow.Kind.SERVE && o.order.getStatus() == OrderStatus.READY
-                    && (best == null || o.customer.getSatisfaction() < best.customer.getSatisfaction())) {
+                    && (best == null || urgency(o.customer) < urgency(best.customer))) {
                 best = o;
             }
         }
@@ -60,8 +60,8 @@ final class Advisor {
         }
         for (TurnFlow.Option o : options) {
             if (o.kind == TurnFlow.Kind.TAKE_ORDER) {
-                return new Tip(first(o.customer) + " is seated but has not ordered. Take the order so the Chef "
-                        + "can start cooking.", o);
+                return new Tip(first(o.customer) + " (" + o.customer.getTypeName() + ") is seated but has not ordered. "
+                        + "Take the order so the Chef can start cooking.", o);
             }
         }
         if (!r.getWaitingQueue().isEmpty()) {
@@ -90,7 +90,7 @@ final class Advisor {
         TurnFlow.Option best = null;
         for (TurnFlow.Option o : options) {
             if (o.kind == TurnFlow.Kind.COOK && o.order.getStatus() == OrderStatus.IN_PREPARATION
-                    && (best == null || o.customer.getSatisfaction() < best.customer.getSatisfaction())) {
+                    && (best == null || urgency(o.customer) < urgency(best.customer))) {
                 best = o;
             }
         }
@@ -107,11 +107,19 @@ final class Advisor {
     private static Customer lowestInQueue(Restaurant r) {
         Customer worst = null;
         for (Customer c : r.getWaitingQueue()) {
-            if (worst == null || c.getSatisfaction() < worst.getSatisfaction()) {
+            if (worst == null || urgency(c) < urgency(worst)) {
                 worst = c;
             }
         }
         return worst;
+    }
+
+    /**
+     * Turns this customer could still wait before walking out. Customer types lose
+     * patience at different rates, so this ranks them fairly (lower = more urgent).
+     */
+    static double urgency(Customer c) {
+        return c.getSatisfaction() / (double) Math.max(1, c.getSatisfactionLossPerTurn());
     }
 
     private static TurnFlow.Option waitOption(List<TurnFlow.Option> options) {

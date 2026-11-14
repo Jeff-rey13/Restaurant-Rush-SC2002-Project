@@ -1,5 +1,9 @@
 # Test notes
 
+Each stage's scripts must be run on that stage's tagged code
+(`git checkout stage-1`, `stage-2` or `stage-3`), because later stages change the
+customer mix and the menu.
+
 All runs are fully deterministic (no randomness), so anyone can reproduce them.
 Each script is plain text: one answer per line, lines starting with `#` are comments
 explaining the manager's decision.
@@ -23,3 +27,16 @@ The rule tests (`./run-tests.sh`) check individual rules without the UI.
 
 Customer food choices in Stage 1 (rule: customer n orders menu item ((n − 1) mod 3) + 1):
 C1 Salad, C2 Burger, C3 Pasta, C4 Salad, C5 Burger, C6 Pasta.
+
+## Stage 2
+
+Arrivals: C1 Regular (turn 1), **C2 Critic** (turn 4), **C3 VIP** (turn 7), C4, C5, C6 Regular (turns 10, 13, 16).
+Food: C1 Salad, C2 Pasta (Critic always orders Pasta), C3 Pasta, C4 Salad, C5 Burger, C6 Pasta.
+
+| Script | Expected result | Key evidence |
+|---|---|---|
+| `stage2-victory.txt` | **VICTORY**: 5 paid, $67.20, avg satisfaction 78.0 | Turn 7 is a constrained choice: the Waiter can seat the arriving VIP or serve the Critic. Serving the Critic exactly 2 turns after ordering triggers "impressed" (+10, 64 → 74). The VIP's Pasta is billed $16.20 (10% off) and the VIP loses only 5 per turn while waiting. |
+| `stage2-defeat.txt` | **DEFEAT**: 3 paid, $43.20, avg 64.7 | "One customer at a time" manager never uses the second table. Shows that the same rules with a worse seating policy miss the paid-customer and revenue targets. |
+
+The Critic's "complains" reaction (served more than 2 turns after ordering, −10)
+is checked in the rule tests (`criticReactsToServiceSpeed`).

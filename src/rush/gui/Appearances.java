@@ -8,9 +8,9 @@ import java.util.function.IntFunction;
 import rush.domain.Customer;
 
 /**
- * Chooses how each character looks. Customer looks are registered by the
- * customer's type name, so a new customer type only needs one registration
- * line here and no change to the drawing code.
+ * Chooses how each character looks. Customer styles (look, greeting and name
+ * badge) are registered by the customer's type name, so a new customer type
+ * only needs one registration line here and no change to the drawing code.
  */
 final class Appearances {
 
@@ -33,22 +33,44 @@ final class Appearances {
         "Ana", "Ben", "Chloe", "Dev", "Elena", "Farid", "Grace", "Hiro", "Ines", "Jun"
     };
 
-    private static final Map<String, IntFunction<Look>> CUSTOMER_LOOKS = new HashMap<>();
+    /** How one customer type is presented. */
+    static final class CustomerStyle {
+        final IntFunction<Look> look;
+        final String greeting;
+        /** Colour of the type badge next to the name tag, or null for no badge. */
+        final Color badge;
+
+        CustomerStyle(IntFunction<Look> look, String greeting, Color badge) {
+            this.look = look;
+            this.greeting = greeting;
+            this.badge = badge;
+        }
+    }
+
+    private static final CustomerStyle DEFAULT = new CustomerStyle(Appearances::casual, "Hello! Table for one?", null);
+    private static final Map<String, CustomerStyle> STYLES_BY_TYPE = new HashMap<>();
 
     static {
-        register("Regular", Appearances::casual);
+        register("Regular", DEFAULT);
+        register("VIP", new CustomerStyle(Appearances::vip, "Good evening. Your best table, please.",
+                new Color(214, 160, 30)));
+        register("Critic", new CustomerStyle(Appearances::critic, "I am here to review this place...",
+                new Color(130, 70, 160)));
     }
 
     private Appearances() {
     }
 
-    static void register(String customerType, IntFunction<Look> look) {
-        CUSTOMER_LOOKS.put(customerType, look);
+    static void register(String customerType, CustomerStyle style) {
+        STYLES_BY_TYPE.put(customerType, style);
+    }
+
+    static CustomerStyle styleOf(Customer customer) {
+        return STYLES_BY_TYPE.getOrDefault(customer.getTypeName(), DEFAULT);
     }
 
     static Look forCustomer(Customer customer) {
-        IntFunction<Look> look = CUSTOMER_LOOKS.getOrDefault(customer.getTypeName(), Appearances::casual);
-        return look.apply(customer.getNumber());
+        return styleOf(customer).look.apply(customer.getNumber());
     }
 
     static String nameOf(Customer customer) {
@@ -60,6 +82,20 @@ final class Appearances {
         int i = n - 1;
         return new Look(SKINS[i % SKINS.length], HAIRS[(i * 2 + 1) % HAIRS.length], STYLES[i % STYLES.length],
                 OUTFITS[i % OUTFITS.length], new Color(60, 64, 82), Look.Accessory.NONE, null);
+    }
+
+    /** VIP: velvet jacket with gold trim and sunglasses. */
+    static Look vip(int n) {
+        int i = n - 1;
+        return new Look(SKINS[(i + 2) % SKINS.length], HAIRS[(i + 3) % HAIRS.length], Look.Hair.SHORT,
+                new Color(110, 50, 140), new Color(40, 30, 50), Look.Accessory.VIP_SUIT, new Color(240, 190, 60));
+    }
+
+    /** Food critic: black turtleneck, red beret, round glasses and a notebook. */
+    static Look critic(int n) {
+        int i = n - 1;
+        return new Look(SKINS[(i + 4) % SKINS.length], HAIRS[(i + 1) % HAIRS.length], Look.Hair.SHORT,
+                new Color(44, 44, 52), new Color(70, 60, 56), Look.Accessory.CRITIC_BERET, new Color(190, 40, 50));
     }
 
     static Look waiter() {
