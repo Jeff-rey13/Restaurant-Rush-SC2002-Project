@@ -1,0 +1,620 @@
+------------------------------------------------------------------
+ RESTAURANT RUSH - you are the manager
+------------------------------------------------------------------
+ 18 turns, 2 tables, one Waiter, one Chef, one Cashier.
+ Goal after the last turn: at least 4 paid customers, revenue at least $45.00, average satisfaction of paid customers at least 60.
+ Menu:
+   - Salad ($9.00, 1 unit)
+   - Burger ($15.00, 1 unit)
+   - Pasta ($18.00, 2 units)
+ Customers choose their own food: customer number n orders menu item
+ number ((n - 1) mod 3) + 1 in the list above.
+
+==================== TURN 1 / 18 ====================
+* C1 (Regular) arrives and joins the waiting queue with satisfaction 100.
+Revenue: $0.00 | Paid customers: 0 | Avg satisfaction (paid): N/A
+Waiting queue:
+  C1 [Regular, satisfaction 100] WAITING
+Tables:
+  Table 1: (free)
+  Table 2: (free)
+Staff tasks available:
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 1 can be seated, 0 order(s) to take, 0 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 1
+  Seat which customer?
+    1) C1 [Regular, satisfaction 100] WAITING
+    0) Back
+  Customer [0-1]: 1
+  OK: C1 is seated at Table 1.
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  0) Wait
+Chef task [0-0]: 0
+  OK: Chef waits this turn.
+------------------------------------------------------------------
+* Waiting penalty: C1 -8 (now 92).
+END OF TURN 1: served 0 | unhappy departures 0 | revenue $0.00 | avg satisfaction (paid) N/A | turns used 1/18
+
+==================== TURN 2 / 18 ====================
+Revenue: $0.00 | Paid customers: 0 | Avg satisfaction (paid): N/A
+Waiting queue: (empty)
+Tables:
+  Table 1: C1 [Regular, satisfaction 92] SEATED - no order yet
+  Table 2: (free)
+Staff tasks available:
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 0 can be seated, 1 order(s) to take, 0 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 2
+  Take whose order?
+    1) C1 [Regular, satisfaction 92] SEATED - no order yet
+    0) Back
+  Customer [0-1]: 1
+  OK: C1 (Regular) orders Salad: Order #1, bill $9.00, needs 1 preparation unit(s).
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  1) Order #1 for C1: Salad, IN_PREPARATION (0/1 units)
+  0) Wait
+Chef task [0-1]: 1
+  OK: Chef works on Order #1 (Salad): 1/1 units. It is now READY (can be served from next turn).
+------------------------------------------------------------------
+* Waiting penalty: C1 -8 (now 84).
+END OF TURN 2: served 0 | unhappy departures 0 | revenue $0.00 | avg satisfaction (paid) N/A | turns used 2/18
+
+==================== TURN 3 / 18 ====================
+Revenue: $0.00 | Paid customers: 0 | Avg satisfaction (paid): N/A
+Waiting queue: (empty)
+Tables:
+  Table 1: C1 [Regular, satisfaction 84] ORDERED - Order #1 Salad READY (1/1 units)
+  Table 2: (free)
+Staff tasks available:
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 0 can be seated, 0 order(s) to take, 1 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 3
+  Serve which order?
+    1) Order #1 for C1: Salad, READY (1/1 units)
+    0) Back
+  Order [0-1]: 1
+  OK: Order #1 (Salad) served to C1. Status: SERVED.
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  0) Wait
+Chef task [0-0]: 0
+  OK: Chef waits this turn.
+------------------------------------------------------------------
+END OF TURN 3: served 1 | unhappy departures 0 | revenue $0.00 | avg satisfaction (paid) N/A | turns used 3/18
+
+==================== TURN 4 / 18 ====================
+* C2 (Regular) arrives and joins the waiting queue with satisfaction 100.
+Revenue: $0.00 | Paid customers: 0 | Avg satisfaction (paid): N/A
+Waiting queue:
+  C2 [Regular, satisfaction 100] WAITING
+Tables:
+  Table 1: C1 [Regular, satisfaction 84] EATING - Order #1 Salad SERVED
+  Table 2: (free)
+Staff tasks available:
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 1 can be seated, 0 order(s) to take, 0 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 1
+  Seat which customer?
+    1) C2 [Regular, satisfaction 100] WAITING
+    0) Back
+  Customer [0-1]: 1
+  OK: C2 is seated at Table 2.
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  0) Wait
+Chef task [0-0]: 0
+  OK: Chef waits this turn.
+------------------------------------------------------------------
+* C1 finishes eating and is READY_TO_PAY (pays next turn at the earliest).
+* Waiting penalty: C2 -8 (now 92).
+END OF TURN 4: served 1 | unhappy departures 0 | revenue $0.00 | avg satisfaction (paid) N/A | turns used 4/18
+
+==================== TURN 5 / 18 ====================
+Revenue: $0.00 | Paid customers: 0 | Avg satisfaction (paid): N/A
+Waiting queue: (empty)
+Tables:
+  Table 1: C1 [Regular, satisfaction 84] READY_TO_PAY - Order #1 Salad SERVED
+  Table 2: C2 [Regular, satisfaction 92] SEATED - no order yet
+Staff tasks available:
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 0 can be seated, 1 order(s) to take, 0 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 2
+  Take whose order?
+    1) C1 [Regular, satisfaction 84] READY_TO_PAY - Order #1 Salad SERVED
+    2) C2 [Regular, satisfaction 92] SEATED - no order yet
+    0) Back
+  Customer [0-2]: 2
+  OK: C2 (Regular) orders Burger: Order #2, bill $15.00, needs 1 preparation unit(s).
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  1) Order #2 for C2: Burger, IN_PREPARATION (0/1 units)
+  0) Wait
+Chef task [0-1]: 1
+  OK: Chef works on Order #2 (Burger): 1/1 units. It is now READY (can be served from next turn).
+------------------------------------------------------------------
+* Cashier collects $9.00 from C1: PAID, satisfaction 84 recorded, table freed.
+* Waiting penalty: C2 -8 (now 84).
+END OF TURN 5: served 1 | unhappy departures 0 | revenue $9.00 | avg satisfaction (paid) 84.0 | turns used 5/18
+
+==================== TURN 6 / 18 ====================
+Revenue: $9.00 | Paid customers: 1 | Avg satisfaction (paid): 84.0
+Waiting queue: (empty)
+Tables:
+  Table 1: (free)
+  Table 2: C2 [Regular, satisfaction 84] ORDERED - Order #2 Burger READY (1/1 units)
+Staff tasks available:
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 0 can be seated, 0 order(s) to take, 1 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 3
+  Serve which order?
+    1) Order #2 for C2: Burger, READY (1/1 units)
+    0) Back
+  Order [0-1]: 1
+  OK: Order #2 (Burger) served to C2. Status: SERVED.
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  0) Wait
+Chef task [0-0]: 0
+  OK: Chef waits this turn.
+------------------------------------------------------------------
+END OF TURN 6: served 2 | unhappy departures 0 | revenue $9.00 | avg satisfaction (paid) 84.0 | turns used 6/18
+
+==================== TURN 7 / 18 ====================
+* C3 (Regular) arrives and joins the waiting queue with satisfaction 100.
+Revenue: $9.00 | Paid customers: 1 | Avg satisfaction (paid): 84.0
+Waiting queue:
+  C3 [Regular, satisfaction 100] WAITING
+Tables:
+  Table 1: (free)
+  Table 2: C2 [Regular, satisfaction 84] EATING - Order #2 Burger SERVED
+Staff tasks available:
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 1 can be seated, 0 order(s) to take, 0 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 1
+  Seat which customer?
+    1) C3 [Regular, satisfaction 100] WAITING
+    0) Back
+  Customer [0-1]: 1
+  OK: C3 is seated at Table 1.
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  0) Wait
+Chef task [0-0]: 0
+  OK: Chef waits this turn.
+------------------------------------------------------------------
+* C2 finishes eating and is READY_TO_PAY (pays next turn at the earliest).
+* Waiting penalty: C3 -8 (now 92).
+END OF TURN 7: served 2 | unhappy departures 0 | revenue $9.00 | avg satisfaction (paid) 84.0 | turns used 7/18
+
+==================== TURN 8 / 18 ====================
+Revenue: $9.00 | Paid customers: 1 | Avg satisfaction (paid): 84.0
+Waiting queue: (empty)
+Tables:
+  Table 1: C3 [Regular, satisfaction 92] SEATED - no order yet
+  Table 2: C2 [Regular, satisfaction 84] READY_TO_PAY - Order #2 Burger SERVED
+Staff tasks available:
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 0 can be seated, 1 order(s) to take, 0 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 2
+  Take whose order?
+    1) C3 [Regular, satisfaction 92] SEATED - no order yet
+    2) C2 [Regular, satisfaction 84] READY_TO_PAY - Order #2 Burger SERVED
+    0) Back
+  Customer [0-2]: 1
+  OK: C3 (Regular) orders Pasta: Order #3, bill $18.00, needs 2 preparation unit(s).
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  1) Order #3 for C3: Pasta, IN_PREPARATION (0/2 units)
+  0) Wait
+Chef task [0-1]: 1
+  OK: Chef works on Order #3 (Pasta): 1/2 units.
+------------------------------------------------------------------
+* Cashier collects $15.00 from C2: PAID, satisfaction 84 recorded, table freed.
+* Waiting penalty: C3 -8 (now 84).
+END OF TURN 8: served 2 | unhappy departures 0 | revenue $24.00 | avg satisfaction (paid) 84.0 | turns used 8/18
+
+==================== TURN 9 / 18 ====================
+Revenue: $24.00 | Paid customers: 2 | Avg satisfaction (paid): 84.0
+Waiting queue: (empty)
+Tables:
+  Table 1: C3 [Regular, satisfaction 84] ORDERED - Order #3 Pasta IN_PREPARATION (1/2 units)
+  Table 2: (free)
+Staff tasks available:
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 0 can be seated, 0 order(s) to take, 0 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 1 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 3
+  Serve which order?
+    1) Order #3 for C3: Pasta, IN_PREPARATION (1/2 units)
+    0) Back
+  Order [0-1]: 1
+  NOT ALLOWED: Order #3 is not READY yet (1/2 units done). The Chef must finish it first. The task was not used up - choose again.
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 0
+  OK: Waiter waits this turn.
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  1) Order #3 for C3: Pasta, IN_PREPARATION (1/2 units)
+  0) Wait
+Chef task [0-1]: 1
+  OK: Chef works on Order #3 (Pasta): 2/2 units. It is now READY (can be served from next turn).
+------------------------------------------------------------------
+* Waiting penalty: C3 -8 (now 76).
+END OF TURN 9: served 2 | unhappy departures 0 | revenue $24.00 | avg satisfaction (paid) 84.0 | turns used 9/18
+
+==================== TURN 10 / 18 ====================
+* C4 (Regular) arrives and joins the waiting queue with satisfaction 100.
+Revenue: $24.00 | Paid customers: 2 | Avg satisfaction (paid): 84.0
+Waiting queue:
+  C4 [Regular, satisfaction 100] WAITING
+Tables:
+  Table 1: C3 [Regular, satisfaction 76] ORDERED - Order #3 Pasta READY (2/2 units)
+  Table 2: (free)
+Staff tasks available:
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 1 can be seated, 0 order(s) to take, 1 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 3
+  Serve which order?
+    1) Order #3 for C3: Pasta, READY (2/2 units)
+    0) Back
+  Order [0-1]: 1
+  OK: Order #3 (Pasta) served to C3. Status: SERVED.
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  0) Wait
+Chef task [0-0]: 0
+  OK: Chef waits this turn.
+------------------------------------------------------------------
+* Waiting penalty: C4 -8 (now 92).
+END OF TURN 10: served 3 | unhappy departures 0 | revenue $24.00 | avg satisfaction (paid) 84.0 | turns used 10/18
+
+==================== TURN 11 / 18 ====================
+Revenue: $24.00 | Paid customers: 2 | Avg satisfaction (paid): 84.0
+Waiting queue:
+  C4 [Regular, satisfaction 92] WAITING
+Tables:
+  Table 1: C3 [Regular, satisfaction 76] EATING - Order #3 Pasta SERVED
+  Table 2: (free)
+Staff tasks available:
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 1 can be seated, 0 order(s) to take, 0 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 1
+  Seat which customer?
+    1) C4 [Regular, satisfaction 92] WAITING
+    0) Back
+  Customer [0-1]: 1
+  OK: C4 is seated at Table 2.
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  0) Wait
+Chef task [0-0]: 0
+  OK: Chef waits this turn.
+------------------------------------------------------------------
+* C3 finishes eating and is READY_TO_PAY (pays next turn at the earliest).
+* Waiting penalty: C4 -8 (now 84).
+END OF TURN 11: served 3 | unhappy departures 0 | revenue $24.00 | avg satisfaction (paid) 84.0 | turns used 11/18
+
+==================== TURN 12 / 18 ====================
+Revenue: $24.00 | Paid customers: 2 | Avg satisfaction (paid): 84.0
+Waiting queue: (empty)
+Tables:
+  Table 1: C3 [Regular, satisfaction 76] READY_TO_PAY - Order #3 Pasta SERVED
+  Table 2: C4 [Regular, satisfaction 84] SEATED - no order yet
+Staff tasks available:
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 0 can be seated, 1 order(s) to take, 0 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 2
+  Take whose order?
+    1) C3 [Regular, satisfaction 76] READY_TO_PAY - Order #3 Pasta SERVED
+    2) C4 [Regular, satisfaction 84] SEATED - no order yet
+    0) Back
+  Customer [0-2]: 2
+  OK: C4 (Regular) orders Salad: Order #4, bill $9.00, needs 1 preparation unit(s).
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  1) Order #4 for C4: Salad, IN_PREPARATION (0/1 units)
+  0) Wait
+Chef task [0-1]: 1
+  OK: Chef works on Order #4 (Salad): 1/1 units. It is now READY (can be served from next turn).
+------------------------------------------------------------------
+* Cashier collects $18.00 from C3: PAID, satisfaction 76 recorded, table freed.
+* Waiting penalty: C4 -8 (now 76).
+END OF TURN 12: served 3 | unhappy departures 0 | revenue $42.00 | avg satisfaction (paid) 81.3 | turns used 12/18
+
+==================== TURN 13 / 18 ====================
+* C5 (Regular) arrives and joins the waiting queue with satisfaction 100.
+Revenue: $42.00 | Paid customers: 3 | Avg satisfaction (paid): 81.3
+Waiting queue:
+  C5 [Regular, satisfaction 100] WAITING
+Tables:
+  Table 1: (free)
+  Table 2: C4 [Regular, satisfaction 76] ORDERED - Order #4 Salad READY (1/1 units)
+Staff tasks available:
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 1 can be seated, 0 order(s) to take, 1 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 3
+  Serve which order?
+    1) Order #4 for C4: Salad, READY (1/1 units)
+    0) Back
+  Order [0-1]: 1
+  OK: Order #4 (Salad) served to C4. Status: SERVED.
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  0) Wait
+Chef task [0-0]: 0
+  OK: Chef waits this turn.
+------------------------------------------------------------------
+* Waiting penalty: C5 -8 (now 92).
+END OF TURN 13: served 4 | unhappy departures 0 | revenue $42.00 | avg satisfaction (paid) 81.3 | turns used 13/18
+
+==================== TURN 14 / 18 ====================
+Revenue: $42.00 | Paid customers: 3 | Avg satisfaction (paid): 81.3
+Waiting queue:
+  C5 [Regular, satisfaction 92] WAITING
+Tables:
+  Table 1: (free)
+  Table 2: C4 [Regular, satisfaction 76] EATING - Order #4 Salad SERVED
+Staff tasks available:
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 1 can be seated, 0 order(s) to take, 0 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 1
+  Seat which customer?
+    1) C5 [Regular, satisfaction 92] WAITING
+    0) Back
+  Customer [0-1]: 1
+  OK: C5 is seated at Table 1.
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  0) Wait
+Chef task [0-0]: 0
+  OK: Chef waits this turn.
+------------------------------------------------------------------
+* C4 finishes eating and is READY_TO_PAY (pays next turn at the earliest).
+* Waiting penalty: C5 -8 (now 84).
+END OF TURN 14: served 4 | unhappy departures 0 | revenue $42.00 | avg satisfaction (paid) 81.3 | turns used 14/18
+
+==================== TURN 15 / 18 ====================
+Revenue: $42.00 | Paid customers: 3 | Avg satisfaction (paid): 81.3
+Waiting queue: (empty)
+Tables:
+  Table 1: C5 [Regular, satisfaction 84] SEATED - no order yet
+  Table 2: C4 [Regular, satisfaction 76] READY_TO_PAY - Order #4 Salad SERVED
+Staff tasks available:
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 0 can be seated, 1 order(s) to take, 0 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 2
+  Take whose order?
+    1) C5 [Regular, satisfaction 84] SEATED - no order yet
+    2) C4 [Regular, satisfaction 76] READY_TO_PAY - Order #4 Salad SERVED
+    0) Back
+  Customer [0-2]: 1
+  OK: C5 (Regular) orders Burger: Order #5, bill $15.00, needs 1 preparation unit(s).
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  1) Order #5 for C5: Burger, IN_PREPARATION (0/1 units)
+  0) Wait
+Chef task [0-1]: 1
+  OK: Chef works on Order #5 (Burger): 1/1 units. It is now READY (can be served from next turn).
+------------------------------------------------------------------
+* Cashier collects $9.00 from C4: PAID, satisfaction 76 recorded, table freed.
+* Waiting penalty: C5 -8 (now 76).
+END OF TURN 15: served 4 | unhappy departures 0 | revenue $51.00 | avg satisfaction (paid) 80.0 | turns used 15/18
+
+==================== TURN 16 / 18 ====================
+* C6 (Regular) arrives and joins the waiting queue with satisfaction 100.
+Revenue: $51.00 | Paid customers: 4 | Avg satisfaction (paid): 80.0
+Waiting queue:
+  C6 [Regular, satisfaction 100] WAITING
+Tables:
+  Table 1: C5 [Regular, satisfaction 76] ORDERED - Order #5 Burger READY (1/1 units)
+  Table 2: (free)
+Staff tasks available:
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 1 can be seated, 0 order(s) to take, 1 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 3
+  Serve which order?
+    1) Order #5 for C5: Burger, READY (1/1 units)
+    0) Back
+  Order [0-1]: 1
+  OK: Order #5 (Burger) served to C5. Status: SERVED.
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  0) Wait
+Chef task [0-0]: 0
+  OK: Chef waits this turn.
+------------------------------------------------------------------
+* Waiting penalty: C6 -8 (now 92).
+END OF TURN 16: served 5 | unhappy departures 0 | revenue $51.00 | avg satisfaction (paid) 80.0 | turns used 16/18
+
+==================== TURN 17 / 18 ====================
+Revenue: $51.00 | Paid customers: 4 | Avg satisfaction (paid): 80.0
+Waiting queue:
+  C6 [Regular, satisfaction 92] WAITING
+Tables:
+  Table 1: C5 [Regular, satisfaction 76] EATING - Order #5 Burger SERVED
+  Table 2: (free)
+Staff tasks available:
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 1 can be seated, 0 order(s) to take, 0 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 1
+  Seat which customer?
+    1) C6 [Regular, satisfaction 92] WAITING
+    0) Back
+  Customer [0-1]: 1
+  OK: C6 is seated at Table 2.
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  0) Wait
+Chef task [0-0]: 0
+  OK: Chef waits this turn.
+------------------------------------------------------------------
+* C5 finishes eating and is READY_TO_PAY (pays next turn at the earliest).
+* Waiting penalty: C6 -8 (now 84).
+END OF TURN 17: served 5 | unhappy departures 0 | revenue $51.00 | avg satisfaction (paid) 80.0 | turns used 17/18
+
+==================== TURN 18 / 18 ====================
+Revenue: $51.00 | Paid customers: 4 | Avg satisfaction (paid): 80.0
+Waiting queue: (empty)
+Tables:
+  Table 1: C5 [Regular, satisfaction 76] READY_TO_PAY - Order #5 Burger SERVED
+  Table 2: C6 [Regular, satisfaction 84] SEATED - no order yet
+Staff tasks available:
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 0 can be seated, 1 order(s) to take, 0 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 2
+  Take whose order?
+    1) C5 [Regular, satisfaction 76] READY_TO_PAY - Order #5 Burger SERVED
+    2) C6 [Regular, satisfaction 84] SEATED - no order yet
+    0) Back
+  Customer [0-2]: 2
+  OK: C6 (Regular) orders Pasta: Order #6, bill $18.00, needs 2 preparation unit(s).
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  1) Order #6 for C6: Pasta, IN_PREPARATION (0/2 units)
+  0) Wait
+Chef task [0-1]: 1
+  OK: Chef works on Order #6 (Pasta): 1/2 units.
+------------------------------------------------------------------
+* Cashier collects $15.00 from C5: PAID, satisfaction 76 recorded, table freed.
+* Waiting penalty: C6 -8 (now 76).
+END OF TURN 18: served 5 | unhappy departures 0 | revenue $66.00 | avg satisfaction (paid) 79.2 | turns used 18/18
+
+==================== FINAL RESULT ====================
+[MET]    Paid customers: 5 (target >= 4)
+[MET]    Revenue: $66.00 (target >= $45.00)
+[MET]    Avg satisfaction (paid): 79.2 (target >= 60)
+Served: 5 | Unhappy departures: 0 | Turns used: 18
+
+*** VICTORY! The restaurant hit every target. ***

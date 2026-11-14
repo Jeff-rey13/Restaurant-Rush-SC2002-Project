@@ -1,0 +1,126 @@
+@startuml gui-class-diagram
+' Restaurant Rush - the 2D game window (package rush.gui) and how it uses the game.
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam class {
+  BackgroundColor<<boundary>> #E8F1FB
+  BackgroundColor<<control>> #FFF4E0
+}
+skinparam note {
+  BackgroundColor #FFFBD6
+}
+hide empty members
+title Restaurant Rush - Game window classes (rush.gui)
+
+package "rush.gui (boundary: 2D game window)" {
+  class GuiMain <<boundary>> {
+    + {static} main(args : String[]) : void
+  }
+  class GamePanel <<boundary>> {
+    - screen : Screen
+    - tipsOn : boolean
+    + renderFrame(g : Graphics2D) : void
+    ~ startGame() : void
+    ~ startReplay(p : ScriptedPlayer, name : String, speed : double) : void
+    + onLog(text : String, kind : LogKind) : void
+    + onStaffAction(o : Option, r : ActionResult) : void
+    + onHappyHour(r : ActionResult) : void
+    + onGameOver() : void
+  }
+  interface "TurnFlow.Listener" as Listener {
+    + onLog(text : String, kind : LogKind) : void
+    + onStaffAction(o : Option, r : ActionResult) : void
+    + onHappyHour(r : ActionResult) : void
+    + onTurnEnded() : void
+    + onGameOver() : void
+  }
+  class TurnFlow <<boundary>> {
+    - phase : Phase
+    ~ newGame() : void
+    ~ nextTurn() : void
+    ~ options() : List<Option>
+    ~ choose(o : Option) : void
+    ~ activateHappyHour() : void
+    - advance() : void
+  }
+  class "TurnFlow.Option" as Option {
+    ~ role : Role
+    ~ kind : Kind
+    ~ label : String
+    ~ action : Supplier<ActionResult>
+  }
+  class World <<boundary>> {
+    ~ sync(game : GameController) : void
+    ~ onStaffAction(o : Option, r : ActionResult) : void
+    ~ update(dt : double) : void
+    ~ paint(g : Graphics2D, game : GameController, evening : double) : void
+  }
+  class Advisor <<boundary>> {
+    ~ {static} advise(flow : TurnFlow, options : List<Option>) : Tip
+    ~ {static} urgency(c : Customer) : double
+    ~ {static} suggestHappyHour(flow : TurnFlow) : boolean
+  }
+  class ScriptedPlayer <<boundary>> {
+    - answers : List<String>
+    ~ step(flow : TurnFlow) : boolean
+  }
+  class Actor {
+    ~ x : double
+    ~ y : double
+    ~ walkTo(p : Point2D, onArrive : Runnable, pause : double) : void
+    ~ update(dt : double, time : double) : void
+  }
+  class "World.CustomerActor" as CustomerActor
+  class Appearances <<utility>> {
+    ~ {static} register(type : String, style : CustomerStyle) : void
+    ~ {static} styleOf(c : Customer) : CustomerStyle
+  }
+  class "SceneRenderer / CharacterPainter / DishPainter / UiKit" as Painters <<utility>>
+}
+
+class GameController <<control>> {
+  + beginTurn() : List<String>
+  + hostSeat(c) / waiterSeat(c) / waiterTakeOrder(c) / waiterServe(o) / chefPrepare(o) : ActionResult
+  + activateHappyHour() : ActionResult
+  + endTurn() : List<String>
+}
+class Restaurant <<entity>>
+abstract class Customer <<entity>> {
+  + getTypeName() : String
+  + getSatisfaction() : int
+  + getSatisfactionLossPerTurn() : int
+}
+
+' ---------------- game window
+GuiMain ..> GamePanel : <<create>>
+GamePanel ..|> Listener
+GamePanel *-- "1" TurnFlow
+GamePanel *-- "1" World
+GamePanel ..> Advisor
+GamePanel --> "0..1" ScriptedPlayer
+TurnFlow --> "1" Listener
+TurnFlow --> "1" GameController : same calls as ConsoleUI >
+TurnFlow ..> Option : <<create>>
+ScriptedPlayer ..> TurnFlow
+Advisor ..> Restaurant
+World *-- "0..*" CustomerActor
+World *-- "4" Actor : staff
+Actor <|-- CustomerActor
+CustomerActor --> "1" Customer
+World ..> Appearances
+World ..> Painters
+note bottom of TurnFlow
+  <b>Rules stay out of the UI</b>: the window only offers
+  choices and passes them to GameController, which accepts
+  them or returns the reason (ActionResult). The console and
+  the window run the same game; scripted runs give identical
+  results in both.
+end note
+
+note right of Appearances
+  Customer looks are registered by
+  getTypeName() (Regular, VIP, Critic),
+  so the window has no type checks either.
+end note
+@enduml

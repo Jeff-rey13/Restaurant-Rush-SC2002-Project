@@ -1,0 +1,320 @@
+@startuml
+set separator none
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+hide circle
+hide empty members
+skinparam shadowing false
+skinparam roundCorner 0
+skinparam defaultFontName Inter
+skinparam defaultFontSize 12
+skinparam packageStyle rectangle
+skinparam packageFontSize 13
+skinparam packageFontStyle bold
+skinparam nodesep 35
+skinparam ranksep 45
+skinparam padding 2
+skinparam ArrowColor #333333
+skinparam ArrowFontSize 11
+skinparam classBorderColor #222222
+skinparam classBackgroundColor #FFFFFF
+skinparam classHeaderBackgroundColor #FFFFFF
+skinparam classFontStyle bold
+skinparam classStereotypeFontSize 10
+skinparam noteBackgroundColor #F7F7F7
+skinparam noteBorderColor #999999
+skinparam noteFontSize 11
+skinparam packageBorderColor #777777
+package "rush.ui  (boundary)" #FFFFFF {
+  class ConsoleUI <<boundary>> <<changed in Stage 3>> #FFFFFF;line:222222;line.dashed {
+    - game : GameController
+    - input : InputReader
+    - out : PrintStream
+    + run() : void
+    - playTurn() : void
+    - <b>happyHourPhase() : void</b>
+    - <b>hostPhase() : void</b>
+    - waiterPhase() : void
+    - chefPhase() : void
+    - showStatus() : void
+    - showEndOfTurn() : void
+    - showFinalResult() : void
+  }
+  class InputReader <<boundary>> {
+    - in : BufferedReader
+    - echo : boolean
+    + readChoice(prompt : String, min : int, max : int) : int
+  }
+}
+package "rush.control  (control)" #FFFFFF {
+  class GameController <<control>> <<changed in Stage 3>> #FFFFFF;line:222222;line.dashed {
+    - currentTurn : int
+    + {static} createBaseGame() : GameController
+    + hasNextTurn() : boolean
+    + beginTurn() : List<String>
+    + <b>activateHappyHour() : ActionResult</b>
+    + <b>hostSeat(c : Customer) : ActionResult</b>
+    + <b>hostWait() : ActionResult</b>
+    + waiterSeat(c : Customer) : ActionResult
+    + waiterTakeOrder(c : Customer) : ActionResult
+    + waiterServe(o : Order) : ActionResult
+    + waiterWait() : ActionResult
+    + chefPrepare(o : Order) : ActionResult
+    + chefWait() : ActionResult
+    + endTurn() : List<String>
+    + describeAvailableTasks() : List<String>
+    + getResult() : GameResult
+  }
+  note right of GameController
+<b>Composition</b>
+Owns one game's restaurant, staff
+(now incl. Host), stats and
+Happy Hour.
+  end note
+  class GameConfig <<control>> {
+    - totalTurns : int
+    - tableCount : int
+    - targetPaidCustomers : int
+    - targetRevenueCents : int
+    - targetAverageSatisfaction : int
+    + {static} base() : GameConfig
+  }
+  class ArrivalSchedule <<control>> {
+    - arrivals : Map<Integer, BiFunction>
+    - arrivalsSoFar : int
+    + {static} base() : ArrivalSchedule
+    + arrivalFor(turn : int) : Customer
+  }
+  class GameStats <<control>> {
+    - revenueCents : int
+    - paidCustomers : int
+    - paidSatisfactionTotal : int
+    - servedCount : int
+    - unhappyDepartures : int
+    + recordPayment(cents : int, satisfaction : int) : void
+    + recordServed() : void
+    + recordUnhappyDeparture() : void
+    + getAverageSatisfaction() : double
+    + evaluate(config : GameConfig) : GameResult
+  }
+  enum GameResult <<enumeration>> {
+    VICTORY
+    DEFEAT
+  }
+}
+package "rush.staff" #FFFFFF {
+  abstract class Staff {
+    - role : String
+    - busyThisTurn : boolean
+    + {abstract} describeDuties() : String
+    + isAvailable() : boolean
+    + startTurn() : void
+    + waitThisTurn() : ActionResult
+    # markBusy() : void
+    # alreadyBusy() : ActionResult
+  }
+  class Host <<new in Stage 3>> #E6E6E6;line:000000;line.bold {
+    + seat(c : Customer, r : Restaurant) : ActionResult
+  }
+  class Waiter {
+    + seat(c : Customer, r : Restaurant) : ActionResult
+    + takeOrder(c : Customer, r : Restaurant,\n    p : PriceCalculator, turn : int) : ActionResult
+    + serve(o : Order, turn : int) : ActionResult
+  }
+  class Chef {
+    + prepare(o : Order, turn : int) : ActionResult
+  }
+  class Cashier {
+    + collectPayment(r : Restaurant, turn : int) : Customer
+  }
+}
+package "rush.domain  (entity)" #FFFFFF {
+  class Restaurant {
+    - nextOrderId : int
+    + admit(c : Customer) : void
+    + seatCustomer(c : Customer) : ActionResult
+    + createOrder(c : Customer, item : MenuItem,\n    priceCents : int, turn : int) : Order
+    + removeUnhappyCustomer(c : Customer) : void
+    + findFreeTable() : Table
+    + getCustomersWaitingForService() : List<Customer>
+    + getCustomersAbleToPay(turn : int) : List<Customer>
+  }
+  class Table {
+    - number : int
+    + isFree() : boolean
+    ~ assign(c : Customer) : void
+    + release() : void
+  }
+  abstract class Customer <<changed in Stage 3>> #FFFFFF;line:222222;line.dashed {
+    - number : int
+    - satisfaction : int
+    - status : CustomerStatus
+    - servedTurn : int
+    - readyToPayTurn : int
+    - paidSatisfaction : int
+    + {abstract} getTypeName() : String
+    + {abstract} getSatisfactionLossPerTurn() : int
+    + chooseMenuItem(menu : Menu) : MenuItem
+    + adjustBill(fullPriceCents : int) : int
+    + describeBehaviour() : String
+    # reactToService(turnsSinceOrder : int) : String
+    # adjustSatisfaction(delta : int) : void
+    ~ seatAt(t : Table) : void
+    + placeOrder(o : Order) : void
+    + receiveFood(turn : int) : String {final}
+    + finishEatingIfDone(turn : int) : boolean
+    + canPay(turn : int) : boolean
+    + pay() : int
+    + loseSatisfactionForWaiting() : boolean
+    + <b>recoverSatisfaction(points : int) : void</b>
+    + leaveUnhappy() : void
+    - setSatisfaction(value : int) : void
+    - requireStatus(s : CustomerStatus) : void
+  }
+  note right of Customer
+<b>Encapsulation + polymorphism</b>
+State changes only through checked
+transition methods. VIP overrides
+adjustBill(); Critic overrides
+chooseMenuItem() and reactToService().
+  end note
+  class RegularCustomer {
+    + getTypeName() : String
+    + getSatisfactionLossPerTurn() : int
+  }
+  class VIPCustomer {
+    + getSatisfactionLossPerTurn() : int
+    + adjustBill(fullPriceCents : int) : int
+  }
+  class CriticCustomer {
+    + {static} SIGNATURE_DISH : String = "Pasta"
+    + getSatisfactionLossPerTurn() : int
+    + chooseMenuItem(menu : Menu) : MenuItem
+    # reactToService(turnsSinceOrder : int) : String
+  }
+  enum CustomerStatus <<enumeration>> {
+    WAITING
+    SEATED
+    ORDERED
+    EATING
+    READY_TO_PAY
+    PAID
+    LEFT
+  }
+  class Order {
+    - id : int
+    - priceCents : int {readOnly}
+    - takenTurn : int
+    - unitsDone : int
+    - status : OrderStatus
+    - readyTurn : int
+    + prepareOneUnit(turn : int) : void
+    + isReadyToServe(turn : int) : boolean
+    + markServed() : void
+    + markPaid() : void
+    + cancel() : void
+  }
+  enum OrderStatus <<enumeration>> {
+    IN_PREPARATION
+    READY
+    SERVED
+    PAID
+    CANCELLED
+  }
+  class Menu <<changed in Stage 3>> #FFFFFF;line:222222;line.dashed {
+    + {static} createDefault() : Menu
+    + itemForArrival(n : int) : MenuItem
+    + findByName(name : String) : MenuItem
+  }
+  class MenuItem {
+    - name : String
+    - priceCents : int
+    - prepUnits : int
+  }
+  class ComboMeal <<new in Stage 3>> #E6E6E6;line:000000;line.bold {
+    + ComboMeal(first : MenuItem, second : MenuItem)
+    + getComponents() : List<MenuItem>
+  }
+  note right of ComboMeal
+<b>Inheritance + composition</b>
+A ComboMeal IS a MenuItem (Waiter,
+Chef and Order need no change) and
+HAS two component MenuItems.
+Price = 90% of sum, units = sum.
+  end note
+  class PriceCalculator <<changed in Stage 3>> #FFFFFF;line:222222;line.dashed {
+    + <b>addPolicy(p : PricingPolicy) : void</b>
+    + quote(c : Customer, item : MenuItem) : int
+  }
+  interface PricingPolicy <<interface>> <<new in Stage 3>> #E6E6E6;line:000000;line.bold {
+    + apply(priceCents : int) : int
+  }
+  note right of PricingPolicy
+<b>Polymorphism / DIP</b>
+PriceCalculator depends on this
+interface. Bill = policies applied
+to customer.adjustBill(price):
+VIP 10% first, then Happy Hour 20%.
+  end note
+  class HappyHour <<new in Stage 3>> #E6E6E6;line:000000;line.bold {
+    - used : boolean
+    - remainingTurns : int
+    + activate() : ActionResult
+    + isActive() : boolean
+    + apply(priceCents : int) : int
+    + applyRecovery(r : Restaurant) : List<String>
+    + endTurn() : void
+  }
+  class ActionResult {
+    - success : boolean
+    - message : String
+    + {static} ok(msg : String) : ActionResult
+    + {static} fail(reason : String) : ActionResult
+  }
+  class Money <<utility>> {
+    + {static} format(cents : int) : String
+    + {static} percentOf(cents : int, percent : int) : int
+  }
+}
+ConsoleUI --> "1" GameController : sends choices >
+ConsoleUI --> "1" InputReader
+GameController --> "1" GameConfig
+GameController --> "1" ArrivalSchedule
+GameController *-- "1" GameStats
+GameController *-- "1" Restaurant
+GameController *-- "1" PriceCalculator
+GameController *-- "1" HappyHour
+GameController *-- "1" Host
+GameController *-- "1" Waiter
+GameController *-- "1" Chef
+GameController *-- "1" Cashier
+GameStats ..> GameResult
+Staff <|-- Host
+Staff <|-- Waiter
+Staff <|-- Chef
+Staff <|-- Cashier
+Waiter ..> PriceCalculator : uses
+Restaurant o-- "1" Menu
+Restaurant *-- "2" Table
+Restaurant o-- "0..*" Customer : queue, customers
+Restaurant *-- "0..*" Order
+Menu o-- "1..*" MenuItem
+MenuItem <|-- ComboMeal
+ComboMeal o-- "2" MenuItem : components
+Customer <|-- RegularCustomer
+Customer <|-- VIPCustomer
+Customer <|-- CriticCustomer
+Customer "0..1" -- "0..1" Table : sits at >
+Customer "1" -- "0..1" Order : places >
+Order --> "1" MenuItem
+Customer -left-> CustomerStatus
+Order --> OrderStatus
+PriceCalculator o-- "0..*" PricingPolicy : policies
+PricingPolicy <|.. HappyHour
+PriceCalculator .down.> Customer : adjustBill()
+legend bottom left
+Trivial getters/setters and the optional game window (rush.gui) are omitted.
+Visibility: + public, - private, # protected, ~ package.  * composition, o aggregation, ..> dependency.
+Grey box with <<new>>: new class in Stage 3.   <b>Bold member</b>: added in Stage 3.   Dashed border with <<changed>>: class changed in Stage 3.
+endlegend
+@enduml

@@ -1,0 +1,46 @@
+# Stage 1 - reproducible DEFEAT run (neglectful manager)
+# The Waiter seats C1 (turn 1) and C2 (turn 4) but never takes an order.
+# Seated customers keep losing 8 per turn: C1 leaves at the end of turn 13,
+# C2 at the end of turn 16. Nobody pays, so every target is missed.
+# Turn 1: seat C1, Chef waits
+1
+1
+0
+# Turns 2-3: everyone waits
+0
+0
+0
+0
+# Turn 4: seat C2, Chef waits
+1
+1
+0
+# Turns 5-18: everyone waits
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0

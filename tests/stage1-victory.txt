@@ -1,0 +1,77 @@
+# Stage 1 - reproducible VICTORY run
+# Strategy: give each customer full attention: seat on arrival, take order next
+# turn while the Chef cooks it, serve the turn after it is READY.
+# Turn 1: Waiter seats C1 (1,1). Chef waits (0).
+1
+1
+0
+# Turn 2: Waiter takes C1's order (2,1). Chef cooks Order #1 Salad (1).
+2
+1
+1
+# Turn 3: Waiter serves Order #1 (3,1). Chef waits.
+3
+1
+0
+# Turn 4: C2 arrives. Waiter seats C2 (1,1). Chef waits.
+1
+1
+0
+# Turn 5: Waiter takes C2's order (2, second seated customer). Chef cooks Order #2.
+2
+2
+1
+# Turn 6: Waiter serves Order #2. Chef waits.
+3
+1
+0
+# Turn 7: C3 arrives. Waiter seats C3 at Table 1. Chef waits.
+1
+1
+0
+# Turn 8: Waiter takes C3's order (Pasta, 2 units). Chef does unit 1.
+2
+1
+1
+# Turn 9: Manager tries to serve the Pasta (3,1) but it is only 1/2 done -> NOT ALLOWED,
+# task not used up. Waiter waits instead (0). Chef does unit 2 -> READY.
+3
+1
+0
+1
+# Turn 10: C4 arrives. Waiter serves the Pasta (Order #3). Chef waits.
+3
+1
+0
+# Turn 11: Waiter seats C4 at Table 2. Chef waits.
+1
+1
+0
+# Turn 12: Waiter takes C4's order (Table 2 = second seated). Chef cooks Order #4.
+2
+2
+1
+# Turn 13: C5 arrives. Waiter serves Order #4. Chef waits.
+3
+1
+0
+# Turn 14: Waiter seats C5 at Table 1. Chef waits.
+1
+1
+0
+# Turn 15: Waiter takes C5's order. Chef cooks Order #5.
+2
+1
+1
+# Turn 16: C6 arrives. Waiter serves Order #5. Chef waits.
+3
+1
+0
+# Turn 17: Waiter seats C6. Chef waits.
+1
+1
+0
+# Turn 18: Waiter takes C6's order. Chef starts it (C6 cannot pay in time - expected).
+2
+2
+1

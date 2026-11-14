@@ -1,0 +1,169 @@
+------------------------------------------------------------------
+ RESTAURANT RUSH - you are the manager
+------------------------------------------------------------------
+ 18 turns, 2 tables, one Waiter, one Chef, one Cashier.
+ Goal after the last turn: at least 4 paid customers, revenue at least $45.00, average satisfaction of paid customers at least 60.
+ Menu:
+   - Salad ($9.00, 1 unit)
+   - Burger ($15.00, 1 unit)
+   - Pasta ($18.00, 2 units)
+ Customers choose their own food: customer number n orders menu item
+ number ((n - 1) mod 3) + 1 in the list above.
+
+==================== TURN 1 / 18 ====================
+* C1 (Regular) arrives and joins the waiting queue with satisfaction 100.
+Revenue: $0.00 | Paid customers: 0 | Avg satisfaction (paid): N/A
+Waiting queue:
+  C1 [Regular, satisfaction 100] WAITING
+Tables:
+  Table 1: (free)
+  Table 2: (free)
+Staff tasks available:
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 1 can be seated, 0 order(s) to take, 0 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: abc
+  Invalid input 'abc'. Please enter a number from 0 to 3.
+Waiter task [0-3]: 7
+  Invalid input '7'. Please enter a number from 0 to 3.
+Waiter task [0-3]: 2
+  Cannot do that: No customer is seated at a table. Choose again.
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 3
+  Cannot do that: There are no orders in the kitchen. Choose again.
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 1
+  Seat which customer?
+    1) C1 [Regular, satisfaction 100] WAITING
+    0) Back
+  Customer [0-1]: 1
+  OK: C1 is seated at Table 1.
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  0) Wait
+Chef task [0-0]: 5
+  Invalid input '5'. Please enter a number from 0 to 0.
+Chef task [0-0]: 0
+  OK: Chef waits this turn.
+------------------------------------------------------------------
+* Waiting penalty: C1 -8 (now 92).
+END OF TURN 1: served 0 | unhappy departures 0 | revenue $0.00 | avg satisfaction (paid) N/A | turns used 1/18
+
+==================== TURN 2 / 18 ====================
+Revenue: $0.00 | Paid customers: 0 | Avg satisfaction (paid): N/A
+Waiting queue: (empty)
+Tables:
+  Table 1: C1 [Regular, satisfaction 92] SEATED - no order yet
+  Table 2: (free)
+Staff tasks available:
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 0 can be seated, 1 order(s) to take, 0 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 1
+  Cannot do that: Nobody is in the waiting queue. Choose again.
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 2
+  Take whose order?
+    1) C1 [Regular, satisfaction 92] SEATED - no order yet
+    0) Back
+  Customer [0-1]: 1
+  OK: C1 (Regular) orders Salad: Order #1, bill $9.00, needs 1 preparation unit(s).
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  1) Order #1 for C1: Salad, IN_PREPARATION (0/1 units)
+  0) Wait
+Chef task [0-1]: 1
+  OK: Chef works on Order #1 (Salad): 1/1 units. It is now READY (can be served from next turn).
+------------------------------------------------------------------
+* Waiting penalty: C1 -8 (now 84).
+END OF TURN 2: served 0 | unhappy departures 0 | revenue $0.00 | avg satisfaction (paid) N/A | turns used 2/18
+
+==================== TURN 3 / 18 ====================
+Revenue: $0.00 | Paid customers: 0 | Avg satisfaction (paid): N/A
+Waiting queue: (empty)
+Tables:
+  Table 1: C1 [Regular, satisfaction 84] ORDERED - Order #1 Salad READY (1/1 units)
+  Table 2: (free)
+Staff tasks available:
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 0 can be seated, 0 order(s) to take, 1 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 2
+  Take whose order?
+    1) C1 [Regular, satisfaction 84] ORDERED - Order #1 Salad READY (1/1 units)
+    0) Back
+  Customer [0-1]: 1
+  NOT ALLOWED: C1 has already ordered. The task was not used up - choose again.
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 3
+  Serve which order?
+    1) Order #1 for C1: Salad, READY (1/1 units)
+    0) Back
+  Order [0-1]: 1
+  OK: Order #1 (Salad) served to C1. Status: SERVED.
+
+CHEF - choose an order to advance by one preparation unit, or wait:
+  0) Wait
+Chef task [0-0]: 0
+  OK: Chef waits this turn.
+------------------------------------------------------------------
+END OF TURN 3: served 1 | unhappy departures 0 | revenue $0.00 | avg satisfaction (paid) N/A | turns used 3/18
+
+==================== TURN 4 / 18 ====================
+* C2 (Regular) arrives and joins the waiting queue with satisfaction 100.
+Revenue: $0.00 | Paid customers: 0 | Avg satisfaction (paid): N/A
+Waiting queue:
+  C2 [Regular, satisfaction 100] WAITING
+Tables:
+  Table 1: C1 [Regular, satisfaction 84] EATING - Order #1 Salad SERVED
+  Table 2: (free)
+Staff tasks available:
+  Waiter : seat a queued customer, take an order, or serve a READY dish (one task) -> 1 can be seated, 0 order(s) to take, 0 dish(es) to serve
+  Chef   : advance one order by one preparation unit -> 0 order(s) to cook
+  Cashier: automatically charges one READY_TO_PAY customer (oldest first)
+
+WAITER - choose one task:
+  1) Seat a queued customer
+  2) Take a seated customer's order
+  3) Serve a READY dish
+  0) Wait
+Waiter task [0-3]: 
+Input ended before the game finished (turn 4). Game stopped.
