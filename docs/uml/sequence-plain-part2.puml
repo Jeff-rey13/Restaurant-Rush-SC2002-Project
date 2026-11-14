@@ -1,0 +1,119 @@
+@startuml
+skinparam defaultFontName Inter
+skinparam defaultFontSize 12
+skinparam shadowing false
+skinparam sequenceMessageAlign left
+skinparam responseMessageBelowArrow true
+skinparam maxMessageSize 230
+skinparam noteFontSize 11
+hide footbox
+autonumber 52 "<b>0."
+skinparam monochrome true
+skinparam roundCorner 0
+skinparam sequenceGroupBackgroundColor #F2F2F2
+skinparam noteBackgroundColor #FAFAFA
+skinparam noteBorderColor #888888
+legend top left
+<b>Use case (Stage 3):</b> a VIP orders during Happy Hour and is followed from arrival to payment, then the result check.
+<b>Starting conditions (start of turn 7, run stage3-victory):</b> C1 has paid ($9.00); Critic C2 is eating at Table 2; Table 1 is free;
+Happy Hour has not been used. VIP C3 arrives this turn.
+<b>Manager choice that changes the outcome:</b> switching Happy Hour on in turn 7 locks C3's bill at $12.96 instead of $16.20,
+and C3 recovers 95 -> 100 at the start of turn 8. Steps of turns 7-11 that involve other customers are left out.
+<b>Part 2 of 2: turns 8-11 and the result check.</b> <b>Outcome:</b> C3 pays $12.96 in turn 11 with satisfaction 95. After turn 18: 5 paid, $85.86, average 86.6 -> VICTORY.
+endlegend
+actor Manager
+boundary ":ConsoleUI" as UI
+control ":GameController" as GC
+participant ":ArrivalSchedule" as AS
+participant ":HappyHour" as HH
+participant ":Host" as Host
+participant ":Waiter" as W
+participant ":Chef" as Chef
+participant ":Cashier" as Cash
+participant ":Restaurant" as R
+participant ":PriceCalculator" as PC
+participant "c3:VIPCustomer" as C3
+participant "o3:Order" as O3
+participant ":GameStats" as GS
+loop for turn = 1 .. 18  [hasNextTurn()]
+  group Turn 8 - recovery, dish becomes READY
+    UI -> GC : beginTurn()
+    GC -> HH : applyRecovery(restaurant)
+    HH -> C3 : recoverSatisfaction(15)
+    note right of C3 : still waiting for food: 95 -> 100
+    Manager -> UI : Chef: work on Order #3
+    UI -> GC : chefPrepare(o3)
+    GC -> Chef : prepare(o3, 8)
+    Chef -> O3 : prepareOneUnit(8)
+    note right of O3 : 2/2 units -> READY (readyTurn = 8)
+    UI -> GC : endTurn()
+    GC -> C3 : loseSatisfactionForWaiting()
+    note right of C3 : 95
+    GC -> HH : endTurn()
+    note right of HH : remainingTurns = 0: Happy Hour ends
+  end
+
+  group Turn 9 - READY -> SERVED
+    Manager -> UI : Waiter: serve Order #3
+    UI -> GC : waiterServe(o3)
+    GC -> W : serve(o3, 9)
+    W -> O3 : isReadyToServe(9)
+    alt READY on an earlier turn
+      O3 --> W : true
+      W -> O3 : markServed()
+      note right of O3 : SERVED
+      W -> C3 : receiveFood(9)
+      C3 -> C3 : reactToService(2)
+      note right of C3 : EATING; VIP inherits the\ndefault (no reaction).\nA Critic would get +/-10 here.
+      W --> GC : ok
+      GC -> GS : recordServed()
+    else not READY yet (or READY only this turn)
+      W --> GC : fail("not READY yet")
+    end
+    UI -> GC : endTurn()
+    note over GC, C3 : c3 is served, so it loses no satisfaction (95)
+  end
+
+  group Turn 10 - eating finishes
+    UI -> GC : endTurn()
+    GC -> C3 : finishEatingIfDone(10)
+    note right of C3 : READY_TO_PAY (readyToPayTurn = 10)
+    GC -> Cash : collectPayment(restaurant, 10)
+    Cash -> R : getCustomersAbleToPay(10)
+    R --> Cash : [] (c3 became READY_TO_PAY this turn)
+  end
+
+  group Turn 11 - payment
+    UI -> GC : endTurn()
+    GC -> Cash : collectPayment(restaurant, 11)
+    Cash -> R : getCustomersAbleToPay(11)
+    R --> Cash : [c3] (oldest first)
+    opt someone can pay and the Cashier is free
+      Cash -> C3 : pay()
+      C3 -> O3 : markPaid()
+      C3 -> C3 : leaveTable()
+      note right of C3 : PAID, satisfaction 95 recorded,\ntable 1 released
+      C3 --> Cash : 1296
+      Cash --> GC : c3
+      GC -> GS : recordPayment(1296, 95)
+    end
+    GC -> R : getCustomersWaitingForService()
+    loop for each customer still waiting (c3 is not: it has paid)
+      note over GC, R : customer.loseSatisfactionForWaiting()
+      opt satisfaction reached 0
+        GC -> R : removeUnhappyCustomer(customer)
+      end
+    end
+  end
+end
+
+UI -> GC : getResult()
+GC -> GS : evaluate(config)
+alt paid >= 4 and revenue >= $45.00 and average satisfaction >= 60
+  GS --> GC : VICTORY
+else any target missed
+  GS --> GC : DEFEAT
+end
+GC --> UI : result
+UI -> Manager : showFinalResult()\n(this run: 5 paid, $85.86, avg 86.6 -> VICTORY)
+@enduml

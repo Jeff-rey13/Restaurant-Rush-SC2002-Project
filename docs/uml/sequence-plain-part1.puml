@@ -1,0 +1,114 @@
+@startuml
+skinparam defaultFontName Inter
+skinparam defaultFontSize 12
+skinparam shadowing false
+skinparam sequenceMessageAlign left
+skinparam responseMessageBelowArrow true
+skinparam maxMessageSize 230
+skinparam noteFontSize 11
+hide footbox
+autonumber "<b>0."
+skinparam monochrome true
+skinparam roundCorner 0
+skinparam sequenceGroupBackgroundColor #F2F2F2
+skinparam noteBackgroundColor #FAFAFA
+skinparam noteBorderColor #888888
+legend top left
+<b>Use case (Stage 3):</b> a VIP orders during Happy Hour and is followed from arrival to payment, then the result check.
+<b>Starting conditions (start of turn 7, run stage3-victory):</b> C1 has paid ($9.00); Critic C2 is eating at Table 2; Table 1 is free;
+Happy Hour has not been used. VIP C3 arrives this turn.
+<b>Manager choice that changes the outcome:</b> switching Happy Hour on in turn 7 locks C3's bill at $12.96 instead of $16.20,
+and C3 recovers 95 -> 100 at the start of turn 8. Steps of turns 7-11 that involve other customers are left out.
+<b>Part 1 of 2: turn 7.</b> <b>Outcome:</b> C3 pays $12.96 in turn 11 with satisfaction 95. After turn 18: 5 paid, $85.86, average 86.6 -> VICTORY.
+endlegend
+actor Manager
+boundary ":ConsoleUI" as UI
+control ":GameController" as GC
+participant ":ArrivalSchedule" as AS
+participant ":HappyHour" as HH
+participant ":Host" as Host
+participant ":Waiter" as W
+participant ":Chef" as Chef
+participant ":Cashier" as Cash
+participant ":Restaurant" as R
+participant ":PriceCalculator" as PC
+participant "c3:VIPCustomer" as C3
+participant "o3:Order" as O3
+participant ":GameStats" as GS
+loop for turn = 1 .. 18  [hasNextTurn()]
+  UI -> GC : beginTurn()
+
+  group Turn 7 - arrival, Happy Hour, seating, order, first cooking unit
+    GC -> AS : arrivalFor(7)
+    AS -> C3 ** : new VIPCustomer(3, 7)
+    AS --> GC : c3
+    GC -> R : admit(c3)
+    note right of C3 : status = WAITING\nsatisfaction = 100
+    GC -> HH : applyRecovery(restaurant)
+    HH --> GC : [] (not active yet)
+    GC --> UI : events
+    UI -> UI : showStatus()
+    opt canActivateHappyHour()
+      Manager -> UI : 1 (switch Happy Hour on)
+      UI -> GC : activateHappyHour()
+      alt no staff has acted this turn
+        GC -> HH : activate()
+        HH --> GC : ok (remainingTurns = 2)
+        GC -> HH : applyRecovery(restaurant)
+        HH -> C3 : recoverSatisfaction(15)
+        note right of C3 : capped at 100
+      else a staff member already acted
+        GC --> UI : fail("only at the start of a turn")
+      end
+      GC --> UI : ActionResult
+    end
+    Manager -> UI : Host: seat C3
+    UI -> GC : hostSeat(c3)
+    GC -> Host : seat(c3, restaurant)
+    Host -> R : seatCustomer(c3)
+    alt free table exists
+      R -> C3 : seatAt(table1)
+      note right of C3 : SEATED
+      R --> Host : ok
+    else all tables occupied
+      R --> Host : fail("No free table")
+      note over UI : reason shown, task not used up,\nmanager chooses again
+    end
+    Host --> GC : ActionResult
+    GC --> UI : ActionResult
+    Manager -> UI : Waiter: take C3's order
+    UI -> GC : waiterTakeOrder(c3)
+    GC -> W : takeOrder(c3, restaurant, pricing, 7)
+    W -> C3 : chooseMenuItem(menu)
+    C3 --> W : Pasta (cycling rule: customer 3)
+    W -> PC : quote(c3, Pasta)
+    PC -> C3 : adjustBill(1800)
+    note right of C3 : <b>polymorphism</b>: VIPCustomer\noverrides adjustBill: 10% off
+    C3 --> PC : 1620
+    loop for each PricingPolicy
+      PC -> HH : apply(1620)
+      HH --> PC : 1296 [isActive(): 20% off]
+    end
+    PC --> W : 1296
+    W -> R : createOrder(c3, Pasta, 1296, 7)
+    R -> O3 ** : new Order(3, c3, Pasta, 1296, 7)
+    note right of O3 : IN_PREPARATION 0/2\nprice locked at $12.96
+    R --> W : o3
+    W -> C3 : placeOrder(o3)
+    W --> GC : ok("orders Pasta, bill $12.96")
+    GC --> UI : ActionResult
+    Manager -> UI : Chef: work on Order #3
+    UI -> GC : chefPrepare(o3)
+    GC -> Chef : prepare(o3, 7)
+    Chef -> O3 : prepareOneUnit(7)
+    note right of O3 : 1/2 units
+    Chef --> GC : ok
+    UI -> GC : endTurn()
+    GC -> C3 : loseSatisfactionForWaiting()
+    note right of C3 : -5 (VIP rate): 95
+    GC -> HH : endTurn()
+    note right of HH : remainingTurns = 1
+  end
+
+end
+@enduml
