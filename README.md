@@ -59,7 +59,7 @@ java -cp out rush.gui.GuiMain --replay tests/stage1-victory.txt --speed 2   # wa
 - S toggles sound effects, M the background music (both are generated in code; silent if there is no sound device).
 
 Scripted, reproducible runs are described in [tests/TEST_NOTES.md](tests/TEST_NOTES.md).
-Each stage's scripts are meant for that stage's tag: `git checkout stage-1` (or `stage-2`, `stage-3`) first.
+Each stage's scripts are meant for that stage's tag: `git checkout stage-1` (or `stage-2`, `stage-3`) first. All three tags are listed at https://github.com/Jeff-rey13/Restaurant-Rush-SC2002-Project/tags.
 
 ## Design documents
 
@@ -82,11 +82,11 @@ Each stage's scripts are meant for that stage's tag: `git checkout stage-1` (or 
 
 ## Stages
 
-| Tag | Adds |
-|---|---|
-| `stage-1` | Regular customers, menu, Waiter, Chef, Cashier, tables, waiting queue, full turn sequence, victory and defeat |
-| `stage-2` | VIP and Critic customers |
-| `stage-3` | Host, ComboMeal, Happy Hour |
+| Tag | Adds | Code at this stage |
+|---|---|---|
+| `stage-1` | Regular customers, menu, Waiter, Chef, Cashier, tables, waiting queue, full turn sequence, victory and defeat | [Browse stage-1](https://github.com/Jeff-rey13/Restaurant-Rush-SC2002-Project/tree/stage-1) |
+| `stage-2` | VIP and Critic customers | [Browse stage-2](https://github.com/Jeff-rey13/Restaurant-Rush-SC2002-Project/tree/stage-2) |
+| `stage-3` | Host, ComboMeal, Happy Hour | [Browse stage-3](https://github.com/Jeff-rey13/Restaurant-Rush-SC2002-Project/tree/stage-3) |
 
 ### Customer types (Stage 2)
 
