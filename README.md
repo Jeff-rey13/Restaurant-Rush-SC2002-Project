@@ -70,15 +70,17 @@ Each stage's scripts are meant for that stage's tag: `git checkout stage-1` (or 
 
 ## Video timestamps
 
+Video: https://youtu.be/6M_nZDla90I
+
 | # | Segment | Presenter | Timestamp |
 |---|---|---|---|
-| 1 | The game launching from the submitted project | Mohammed Hamza | [mm:ss] |
-| 2 | Meaningful manager choices, including a decision where staff are constrained | Mohammed Hamza | [mm:ss] |
-| 3 | A dish going READY → SERVED → payment | Abdullah Mohamed Arshad | [mm:ss] |
-| 4 | A VIP or Critic behaviour | Abdullah Mohamed Arshad | [mm:ss] |
-| 5 | A Stage 3 feature | Japar Ali Mohamed Aarif | [mm:ss] |
-| 6 | One victory and one defeat | Japar Ali Mohamed Aarif | [mm:ss] |
-| 7 | The stage tag comparisons and the diagrams | Narala Thomas Noel Jeffrey | [mm:ss] |
+| 1 | The game launching from the submitted project | Mohammed Hamza | 00:22 |
+| 2 | Meaningful manager choices, including a decision where staff are constrained | Mohammed Hamza | 01:45 |
+| 3 | A dish going READY → SERVED → payment | Abdullah Mohamed Arshad | 03:14 |
+| 4 | A VIP or Critic behaviour | Abdullah Mohamed Arshad | 04:00 |
+| 5 | A Stage 3 feature | Japar Ali Mohamed Aarif | 07:15 |
+| 6 | One victory and one defeat | Japar Ali Mohamed Aarif | 08:44 (victory), 09:11 (defeat) |
+| 7 | The stage tag comparisons and the diagrams | Narala Thomas Noel Jeffrey | 09:35 (stage tags), 11:01 (diagrams) |
 
 ## Stages
 
