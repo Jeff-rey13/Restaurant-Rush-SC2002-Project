@@ -4,9 +4,9 @@ A turn-based restaurant management game for the command line. You are the manage
 each turn you give the Waiter and the Chef one task each, and after 18 turns the
 restaurant must reach the targets to win.
 
-**Repository:** [GitHub URL — fill in]
+**Repository:** https://github.com/Jeff-rey13/Restaurant-Rush-SC2002-Project
 
-**Group:** [Lab group / group number — fill in] · **Members:** [names — fill in]
+**Group:** Lab group SCE3, Group 7 · **Members:** Japar Ali Mohamed Aarif, Abdullah Mohamed Arshad, Mohammed Hamza, Narala Thomas Noel Jeffrey
 
 ## Build and run
 
@@ -63,22 +63,22 @@ Each stage's scripts are meant for that stage's tag: `git checkout stage-1` (or 
 
 ## Design documents
 
-- Class diagram (final, Stage 3): [docs/uml/class-diagram.png](docs/uml/class-diagram.png) · [SVG](docs/uml/class-diagram.svg) · [PlantUML source](docs/uml/class-diagram.puml)
+- Class diagrams, one per stage (each matches the code at its tag): [Stage 1](docs/uml/class-stage1-plain.png) · [Stage 2](docs/uml/class-stage2-plain.png) · [Stage 3, final](docs/uml/class-stage3-plain.png). SVG and PlantUML sources sit next to each PNG.
+- Sequence diagram (VIP order with Happy Hour, arrival → payment → result), in two parts: [part 1, turn 7](docs/uml/sequence-plain-part1.png) · [part 2, turns 8 to 11 and the result](docs/uml/sequence-plain-part2.png)
 - Game window classes (`rush.gui`): [docs/uml/gui-class-diagram.png](docs/uml/gui-class-diagram.png) · [SVG](docs/uml/gui-class-diagram.svg) · [PlantUML source](docs/uml/gui-class-diagram.puml)
-- Sequence diagram (VIP order with Happy Hour, arrival → payment → result): [docs/uml/sequence-diagram.png](docs/uml/sequence-diagram.png) · [SVG](docs/uml/sequence-diagram.svg) · [PlantUML source](docs/uml/sequence-diagram.puml)
 - The PDF report (design discussion, functional evidence, reflections) is submitted alongside this repository.
 
 ## Video timestamps
 
-| # | Segment | Timestamp |
-|---|---|---|
-| 1 | The game launching from the submitted project | [mm:ss] |
-| 2 | Meaningful manager choices, including a decision where staff are constrained | [mm:ss] |
-| 3 | A dish going READY → SERVED → payment | [mm:ss] |
-| 4 | A VIP or Critic behaviour | [mm:ss] |
-| 5 | A Stage 3 feature | [mm:ss] |
-| 6 | One victory and one defeat | [mm:ss] |
-| 7 | The stage tag comparisons and the diagrams | [mm:ss] |
+| # | Segment | Presenter | Timestamp |
+|---|---|---|---|
+| 1 | The game launching from the submitted project | Mohammed Hamza | [mm:ss] |
+| 2 | Meaningful manager choices, including a decision where staff are constrained | Mohammed Hamza | [mm:ss] |
+| 3 | A dish going READY → SERVED → payment | Abdullah Mohamed Arshad | [mm:ss] |
+| 4 | A VIP or Critic behaviour | Abdullah Mohamed Arshad | [mm:ss] |
+| 5 | A Stage 3 feature | Japar Ali Mohamed Aarif | [mm:ss] |
+| 6 | One victory and one defeat | Japar Ali Mohamed Aarif | [mm:ss] |
+| 7 | The stage tag comparisons and the diagrams | Narala Thomas Noel Jeffrey | [mm:ss] |
 
 ## Stages
 
@@ -101,27 +101,27 @@ Food choice rule (Regular and VIP): customer number *n* orders menu item ((n −
 ## Stage 1 → Stage 2 changes
 
 **New files**
-- `domain/VIPCustomer.java` — overrides loss per turn (5) and `adjustBill` (10% off).
-- `domain/CriticCustomer.java` — overrides loss per turn (12), `chooseMenuItem` (Pasta) and `reactToService` (±10).
+- `domain/VIPCustomer.java`: overrides loss per turn (5) and `adjustBill` (10% off).
+- `domain/CriticCustomer.java`: overrides loss per turn (12), `chooseMenuItem` (Pasta) and `reactToService` (±10).
 
 **Changed files**
-- `domain/Customer.java` — added three overridable behaviour points with neutral defaults: `adjustBill` (full price), `reactToService` (no reaction, called from the now-`final` `receiveFood`) and `describeBehaviour`; plus a protected `adjustSatisfaction` so subclasses can change satisfaction without breaking the 0–100 limit. Reason: the new types need places to plug in their behaviour; the defaults keep Regular customers behaving exactly as in Stage 1.
-- `domain/PriceCalculator.java` — one line: asks the customer for its bill (`customer.adjustBill(...)`) instead of using the raw price. Reason: VIP discount dispatched polymorphically, no type checks.
-- `staff/Waiter.java` — `serve` appends the customer's reaction message. Reason: the Critic's reaction must be visible to the manager.
-- `control/ArrivalSchedule.java` — turns 4 and 7 now create a Critic and a VIP (registration change only).
-- `control/GameController.java` — arrival message also shows `describeBehaviour()` (display text only).
-- `test/rush/RuleTests.java` — §3.3 example now uses its own one-customer setup; new VIP/Critic checks.
+- `domain/Customer.java`: added three overridable behaviour points with neutral defaults: `adjustBill` (full price), `reactToService` (no reaction, called from the now-`final` `receiveFood`) and `describeBehaviour`; plus a protected `adjustSatisfaction` so subclasses can change satisfaction without breaking the 0–100 limit. Reason: the new types need places to plug in their behaviour; the defaults keep Regular customers behaving exactly as in Stage 1.
+- `domain/PriceCalculator.java`: one line: asks the customer for its bill (`customer.adjustBill(...)`) instead of using the raw price. Reason: VIP discount dispatched polymorphically, no type checks.
+- `staff/Waiter.java`: `serve` appends the customer's reaction message. Reason: the Critic's reaction must be visible to the manager.
+- `control/ArrivalSchedule.java`: turns 4 and 7 now create a Critic and a VIP (registration change only).
+- `control/GameController.java`: arrival message also shows `describeBehaviour()` (display text only).
+- `test/rush/RuleTests.java`: §3.3 example now uses its own one-customer setup; new VIP/Critic checks.
 
 **Unchanged**: turn sequence, `Order`, `Table`, `Restaurant`, `Chef`, `Cashier`, `ConsoleUI`. The controller contains no customer-type checks.
 
 **Game window (Stage 2 changes)**
-- `gui/Appearances.java` — registers a style (look, greeting, name badge) for `"VIP"` and `"Critic"`; the drawing code looks the style up by `getTypeName()`, so there is no type check in the window either.
-- `gui/Look.java`, `gui/CharacterPainter.java` — two new outfits: VIP suit with sunglasses, Critic beret with glasses and notebook.
-- `gui/World.java` — when a customer's satisfaction jumps at the moment of serving (the Critic's reaction), a speech bubble shows it.
-- `gui/Advisor.java` — tips now rank customers by how many turns they could still wait (satisfaction / loss per turn), because types lose patience at different rates.
-- `gui/GamePanel.java` — hover card shows `describeBehaviour()`.
+- `gui/Appearances.java`: registers a style (look, greeting, name badge) for `"VIP"` and `"Critic"`; the drawing code looks the style up by `getTypeName()`, so there is no customer-type check in the window either.
+- `gui/Look.java`, `gui/CharacterPainter.java`: two new outfits: VIP suit with sunglasses, Critic beret with glasses and notebook.
+- `gui/World.java`: when a customer's satisfaction jumps at the moment of serving (the Critic's reaction), a speech bubble shows it.
+- `gui/Advisor.java`: tips now rank customers by how many turns they could still wait (satisfaction / loss per turn), because types lose patience at different rates.
+- `gui/GamePanel.java`: hover card shows `describeBehaviour()`.
 
-Compare: `git diff stage-1 stage-2` · GitHub: `[repo URL]/compare/stage-1...stage-2`
+Compare: `git diff stage-1 stage-2` · GitHub: https://github.com/Jeff-rey13/Restaurant-Rush-SC2002-Project/compare/stage-1...stage-2
 
 ### Stage 3 features
 
@@ -132,37 +132,39 @@ Compare: `git diff stage-1 stage-2` · GitHub: `[repo URL]/compare/stage-1...sta
 ## Stage 2 → Stage 3 changes
 
 **New files**
-- `domain/ComboMeal.java` — extends `MenuItem` and holds its two components; price and units computed in the constructor.
-- `domain/PricingPolicy.java` — small interface for restaurant-wide price rules applied after the customer's own discount.
-- `domain/HappyHour.java` — implements `PricingPolicy`; owns the once-per-game, two-turn duration and recovery rules.
-- `staff/Host.java` — new `Staff` subclass; seats through the same `Restaurant.seatCustomer` rule as the Waiter.
+- `domain/ComboMeal.java`: extends `MenuItem` and holds its two components; price and units computed in the constructor.
+- `domain/PricingPolicy.java`: small interface for restaurant-wide price rules applied after the customer's own discount.
+- `domain/HappyHour.java`: implements `PricingPolicy`; owns the once-per-game, two-turn duration and recovery rules.
+- `staff/Host.java`: new `Staff` subclass; seats through the same `Restaurant.seatCustomer` rule as the Waiter.
 
 **Changed files**
-- `domain/Menu.java` — `createDefault()` registers the two combos (setup change only; the choice rule is untouched).
-- `domain/PriceCalculator.java` — now holds a list of `PricingPolicy` objects and applies them after `customer.adjustBill`. Reason: Happy Hour must be applied after the VIP discount; depending on the interface means future promotions need no change here.
-- `domain/Customer.java` — added `recoverSatisfaction(int)`, which only affects customers still waiting. Reason: Happy Hour must raise satisfaction without being able to break the 0–100 limit or affect customers who are eating, paid or gone.
-- `control/GameController.java` — creates the Host and Happy Hour, registers Happy Hour with the price calculator, adds `activateHappyHour`, `hostSeat`/`hostWait`, start-of-turn recovery and the end-of-turn countdown.
-- `ui/ConsoleUI.java` — Happy Hour prompt and status line, Host prompt (display and input only; validation stays in the controller).
-- `test/rush/RuleTests.java` — Stage 3 checks.
+- `domain/Menu.java`: `createDefault()` registers the two combos (setup change only; the choice rule is untouched).
+- `domain/PriceCalculator.java`: now holds a list of `PricingPolicy` objects and applies them after `customer.adjustBill`. Reason: Happy Hour must be applied after the VIP discount; depending on the interface means future promotions need no change here.
+- `domain/Customer.java`: added `recoverSatisfaction(int)`, which only affects customers still waiting. Reason: Happy Hour must raise satisfaction without being able to break the 0–100 limit or affect customers who are eating, paid or gone.
+- `control/GameController.java`: creates the Host and Happy Hour, registers Happy Hour with the price calculator, adds `canActivateHappyHour`, `activateHappyHour`, `hostSeat`/`hostWait`, start-of-turn recovery and the end-of-turn countdown.
+- `ui/ConsoleUI.java`: Happy Hour prompt and status line, Host prompt (display and input only; validation stays in the controller).
+- `test/rush/RuleTests.java`: Stage 3 checks.
 
 **Unchanged**: `MenuItem`, `Order`, `Waiter`, `Chef`, `Cashier`, `Table`, `Restaurant`, all customer classes except the one method above. Combos flow through ordering, cooking and payment with no changes, because a `ComboMeal` is a `MenuItem`.
 
 **Game window (Stage 3 changes)**
-- `gui/TurnFlow.java` — a Host phase before the Waiter (same order as the console), Host seat/wait choices, and `activateHappyHour()`.
-- `gui/World.java`, `gui/SceneRenderer.java`, `gui/Appearances.java`, `gui/Look.java`, `gui/CharacterPainter.java` — the Host character and podium by the front desk, and a neon Happy Hour sign that lights up and shows the turns left.
-- `gui/DishPainter.java` — a combo is drawn as its two component dishes on one tray.
-- `gui/GamePanel.java` — Happy Hour row in the side panel with a Start button (key Y); Host portrait; help text.
-- `gui/Advisor.java` — tips for the Host phase, and a suggestion to use Happy Hour when several guests are waiting or someone is close to leaving.
-- `gui/ScriptedPlayer.java` — replays the Happy Hour and Host answers of the Stage 3 scripts exactly as the console reads them.
+- `gui/TurnFlow.java`: a Host phase before the Waiter (same order as the console), Host seat/wait choices, and `activateHappyHour()`.
+- `gui/World.java`, `gui/SceneRenderer.java`, `gui/Appearances.java`, `gui/Look.java`, `gui/CharacterPainter.java`: the Host character and podium by the front desk, and a neon Happy Hour sign that lights up and shows the turns left.
+- `gui/DishPainter.java`: a combo is drawn as its two component dishes on one tray.
+- `gui/GamePanel.java`: Happy Hour row in the side panel with a Start button (key Y); Host portrait; help text.
+- `gui/Advisor.java`: tips for the Host phase, and a suggestion to use Happy Hour when several guests are waiting or someone is close to leaving.
+- `gui/ScriptedPlayer.java`: replays the Happy Hour and Host answers of the Stage 3 scripts exactly as the console reads them.
 
-Compare: `git diff stage-2 stage-3` · GitHub: `[repo URL]/compare/stage-2...stage-3`
+Compare: `git diff stage-2 stage-3` · GitHub: https://github.com/Jeff-rey13/Restaurant-Rush-SC2002-Project/compare/stage-2...stage-3
+
+The compare pages also show some comment-only lines, because we reworded code comments while finishing the final version. The lists above cover the code changes.
 
 ## Package layout
 
 | Package | Role |
 |---|---|
 | `rush.ui` | Boundary: `ConsoleUI` (display + collects choices), `InputReader` (robust input) |
-| `rush.gui` | Boundary: the 2D game window — `GuiMain`, `GamePanel`, `TurnFlow` (sequences a turn and passes choices to `GameController`), `World` (animation), `Advisor` (manager's tips), `ScriptedPlayer` (replays test scripts), painters |
+| `rush.gui` | Boundary: the 2D game window (`GuiMain`, `GamePanel`, `TurnFlow` (sequences a turn and passes choices to `GameController`), `World` (animation), `Advisor` (manager's tips), `ScriptedPlayer` (replays test scripts) and painters) |
 | `rush.control` | Control: `GameController` (turn sequence), `GameConfig`, `ArrivalSchedule`, `GameStats`, `GameResult` |
 | `rush.staff` | `Staff` and its roles `Host`, `Waiter`, `Chef`, `Cashier` |
 | `rush.domain` | Entities: `Restaurant`, `Customer` (+ `RegularCustomer`, `VIPCustomer`, `CriticCustomer`), `Order`, `Table`, `Menu`, `MenuItem` (+ `ComboMeal`), `PriceCalculator`, `PricingPolicy` (+ `HappyHour`), `Money`, enums |
